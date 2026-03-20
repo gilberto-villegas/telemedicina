@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService, User } from '@/lib/auth';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Calendar, Clock, Video, User as UserIcon, CheckCircle, ArrowLeft, Activity } from 'lucide-react';
+import { Calendar, Clock, Video, User as UserIcon, CheckCircle, ArrowLeft, Activity, MessageSquare, Phone } from 'lucide-react';
 import { api } from '@/lib/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -13,6 +13,7 @@ interface Appointment {
   status: string;
   status_name: string;
   reason: string;
+  type: 'videoconsulta' | 'teleconsulta';
   duration_minutes: number;
   patient?: { id: string; first_name: string; last_name: string; document_id: string; };
 }
@@ -53,6 +54,7 @@ export default function DoctorAppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState<'all' | 'videoconsulta' | 'teleconsulta'>('all');
 
   useEffect(() => {
     if (!authService.isAuthenticated()) { navigate('/auth/login'); return; }
@@ -78,6 +80,7 @@ export default function DoctorAppointmentsPage() {
 
   const todayAppointments = appointments
     .filter(a => new Date(a.appointment_date).toISOString().split('T')[0] === selectedDate && a.status_name !== 'cancelled')
+    .filter(a => typeFilter === 'all' || a.type === typeFilter)
     .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
 
   const formattedDate = format(new Date(selectedDate + 'T12:00:00'), "EEEE, d 'de' MMMM yyyy", { locale: es });
@@ -141,10 +144,25 @@ export default function DoctorAppointmentsPage() {
 
         {/* Appointments List */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
               Citas Programadas — {todayAppointments.length}
             </h2>
+            <div className="flex gap-1 bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+              {(['all', 'videoconsulta', 'teleconsulta'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-bold transition-all duration-300 ${
+                    typeFilter === t 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {t === 'all' ? 'Todas' : t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
 
           {todayAppointments.length === 0 ? (
@@ -160,83 +178,134 @@ export default function DoctorAppointmentsPage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {todayAppointments.map((apt) => (
-                <div key={apt.id} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 overflow-hidden">
-                  <div className="flex flex-col sm:flex-row items-stretch">
-                    {/* Time strip */}
-                    <div className="bg-slate-900 flex flex-col items-center justify-center px-6 py-6 sm:w-[100px] text-white transition-colors group-hover:bg-blue-600">
-                      <Clock className="h-4 w-4 mb-2 opacity-50" />
-                      <span className="text-xl font-black">{format(new Date(apt.appointment_date), 'HH:mm')}</span>
-                      <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter mt-1">{apt.duration_minutes} min</span>
-                    </div>
+              {todayAppointments.map((apt) => {
+                const TypeIcon = apt.type === 'videoconsulta' ? Video : Phone;
+                const typeLabel = apt.type === 'videoconsulta' ? 'Videoconsulta' : 'Teleconsulta';
+                const typeColor = apt.type === 'videoconsulta' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600';
 
-                    {/* Content */}
-                    <div className="flex-1 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                      <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 flex-shrink-0 transition-colors group-hover:bg-blue-50 group-hover:text-blue-500">
-                          <UserIcon className="h-7 w-7" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-3 mb-1 flex-wrap">
-                            <h3 className="font-extrabold text-slate-900 text-lg truncate">
-                              {apt.patient ? `${apt.patient.first_name} ${apt.patient.last_name}` : 'Paciente'}
-                            </h3>
-                            <StatusBadge statusName={apt.status_name} status={apt.status} />
-                          </div>
-                          <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
-                            <span className="uppercase tracking-wider">CI: {apt.patient?.document_id || 'N/A'}</span>
-                            {apt.reason && (
-                              <>
-                                <span className="text-slate-200 font-normal">•</span>
-                                <span className="text-slate-500 truncate max-w-[200px]">{apt.reason}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
+                return (
+                  <div key={apt.id} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row items-stretch">
+                      {/* Time strip */}
+                      <div className="bg-slate-900 flex flex-col items-center justify-center px-6 py-6 sm:w-[100px] text-white transition-colors group-hover:bg-blue-600">
+                        <Clock className="h-4 w-4 mb-2 opacity-50" />
+                        <span className="text-xl font-black">{format(new Date(apt.appointment_date), 'HH:mm')}</span>
+                        <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter mt-1">{apt.duration_minutes} min</span>
                       </div>
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-3">
-                        {apt.status_name === 'scheduled' && (
-                          <>
-                            <button
-                              onClick={() => startAppointment(apt.id)}
-                              className="px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10 active:scale-95 flex items-center gap-2"
-                            >
-                              <Video className="h-4 w-4" />
-                              Iniciar
-                            </button>
-                            <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
-                              <button className="px-6 py-3 border border-slate-200 text-slate-600 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95">
-                                Detalles
-                              </button>
-                            </Link>
-                          </>
-                        )}
-                        {apt.status_name === 'in_progress' && (
-                          <Link to={`/dashboard/doctor/appointments/${apt.id}/video`}>
-                            <button className="px-8 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2">
-                              <Video className="h-4 w-4" />
-                              Continuar
-                            </button>
-                          </Link>
-                        )}
-                        {apt.status_name === 'completed' && (
-                          <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
-                            <button className="px-6 py-3 bg-slate-100 text-slate-700 border border-slate-200 rounded-2xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-emerald-500" />
-                              Ver Registro
-                            </button>
-                          </Link>
-                        )}
-                        {apt.status_name === 'cancelled' && (
-                           <span className="text-xs font-bold text-rose-500 uppercase tracking-widest px-4">Cancelada</span>
-                        )}
+                      {/* Content */}
+                      <div className="flex-1 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        <div className="flex items-center gap-5">
+                          <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 flex-shrink-0 transition-colors group-hover:bg-blue-50 group-hover:text-blue-500">
+                            <UserIcon className="h-7 w-7" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-3 mb-1 flex-wrap">
+                              <h3 className="font-extrabold text-slate-900 text-lg truncate">
+                                {apt.patient ? `${apt.patient.first_name} ${apt.patient.last_name}` : 'Paciente'}
+                              </h3>
+                              <StatusBadge statusName={apt.status_name} status={apt.status} />
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${typeColor}`}>
+                                <TypeIcon className="w-3 h-3" />
+                                {typeLabel}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+                              <span className="uppercase tracking-wider">CI: {apt.patient?.document_id || 'N/A'}</span>
+                              {apt.reason && (
+                                <>
+                                  <span className="text-slate-200 font-normal">•</span>
+                                  <span className="text-slate-500 truncate max-w-[200px]">{apt.reason}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-3">
+                          {apt.status_name === 'scheduled' && (
+                            <>
+                              {apt.type === 'videoconsulta' ? (
+                                <button
+                                  onClick={() => startAppointment(apt.id)}
+                                  className="px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10 active:scale-95 flex items-center gap-2"
+                                >
+                                  <Video className="h-4 w-4" />
+                                  Iniciar
+                                </button>
+                              ) : apt.type === 'teleconsulta' ? (
+                                <Link to={`/dashboard/doctor/chat?patient=${apt.patient?.id}&appointment=${apt.id}`}>
+                                  <button className="px-6 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2">
+                                    <MessageSquare className="h-4 w-4" />
+                                    Atender Chat
+                                  </button>
+                                </Link>
+                              ) : (
+                                  <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
+                                      <button className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/10 active:scale-95 flex items-center gap-2">
+                                          <UserIcon className="h-4 w-4" />
+                                          Atender en Consultorio
+                                      </button>
+                                  </Link>
+                              )}
+                              <div className="flex gap-2">
+                                <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
+                                  <button className="px-6 py-3 border border-slate-200 text-slate-600 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95">
+                                    Detalles
+                                  </button>
+                                </Link>
+                              </div>
+                            </>
+                          )}
+                          {apt.status_name === 'in_progress' && (
+                            <div className="flex gap-2">
+                              {apt.type === 'videoconsulta' ? (
+                                <Link to={`/dashboard/doctor/appointments/${apt.id}/video`}>
+                                  <button className="px-8 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2">
+                                    <Video className="h-4 w-4" />
+                                    Continuar
+                                  </button>
+                                </Link>
+                              ) : (
+                                  <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
+                                      <button className="px-8 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2">
+                                          <Activity className="h-4 w-4" />
+                                          Continuar
+                                      </button>
+                                  </Link>
+                              )}
+                              <Link to={`/dashboard/doctor/chat?patient=${apt.patient?.id}&appointment=${apt.id}`}>
+                                <button className="p-3 border border-emerald-100 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-100 transition-all">
+                                  <MessageSquare className="h-5 w-5" />
+                                </button>
+                              </Link>
+                            </div>
+                          )}
+                          {apt.status_name === 'completed' && (
+                            <div className="flex gap-2">
+                              <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
+                                <button className="px-6 py-3 bg-slate-100 text-slate-700 border border-slate-200 rounded-2xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                  Ver Registro
+                                </button>
+                              </Link>
+                              <Link to={`/dashboard/doctor/chat?patient=${apt.patient?.id}&appointment=${apt.id}`}>
+                                <button className="p-3 border border-slate-200 text-slate-600 rounded-2xl hover:bg-slate-50 transition-all">
+                                  <MessageSquare className="h-5 w-5" />
+                                </button>
+                              </Link>
+                            </div>
+                          )}
+                          {apt.status_name === 'cancelled' && (
+                             <span className="text-xs font-bold text-rose-500 uppercase tracking-widest px-4">Cancelada</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

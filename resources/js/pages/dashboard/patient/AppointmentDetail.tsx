@@ -465,7 +465,7 @@ export default function PatientAppointmentDetailPage() {
                                 : (appointment.doctor.specialty_name || appointment.doctor.specialty || 'Generalista')}
                             </p>
                           </div>
-                          <Link to={`/dashboard/patient/chat?doctor=${appointment.doctor.id}`} className="ml-4">
+                          <Link to={`/dashboard/patient/chat?doctor=${appointment.doctor.id}&appointment=${appointment.id}`} className="ml-4">
                             <button className="p-3 bg-white text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100">
                               <MessageSquare className="h-5 w-5" />
                             </button>

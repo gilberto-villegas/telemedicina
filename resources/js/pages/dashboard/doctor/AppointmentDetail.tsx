@@ -9,7 +9,7 @@ import {
   ArrowLeft, Calendar, User as UserIcon, Video,
   FileText, CreditCard, Pill, AlertCircle, CheckCircle2,
   XCircle, Phone, Stethoscope, Activity, Heart, Thermometer,
-  Shield, ChevronRight, History, Printer
+  Shield, ChevronRight, History, Printer, MessageSquare, DollarSign
 } from 'lucide-react';
 
 interface AppointmentData {
@@ -361,6 +361,15 @@ export default function DoctorAppointmentDetailPage() {
     }
   };
 
+  const handleVerify = async (action: 'approve' | 'reject') => {
+    let reason = '';
+    if (action === 'reject') reason = prompt('Motivo del rechazo:') || 'Pago no verificado';
+    try {
+      await api.post(`/payments/${appointment?.payment?.id}/verify`, { action, reason });
+      await loadAppointment();
+    } catch { alert('Error al procesar la verificación'); }
+  };
+
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
@@ -480,7 +489,15 @@ export default function DoctorAppointmentDetailPage() {
           <div className="lg:col-span-2 space-y-8">
             
             {/* Patient Info */}
-            <PremiumCard title="Detalles del Paciente" icon={UserIcon}>
+            <PremiumCard title="Detalles del Paciente" icon={UserIcon} action={
+              appointment.patient && (
+                <Link to={`/dashboard/doctor/chat?patient=${appointment.patient.id}&appointment=${appointment.id}`}>
+                  <button className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                    <MessageSquare className="h-5 w-5" />
+                  </button>
+                </Link>
+              )
+            }>
               {appointment.patient ? (
                 <div className="space-y-1">
                   <InfoRow label="Nombre Completo" value={`${appointment.patient.first_name} ${appointment.patient.last_name}`} />
@@ -577,10 +594,64 @@ export default function DoctorAppointmentDetailPage() {
 
           {/* Right Column */}
           <div className="space-y-8">
+            {/* Payment Verification Section */}
+            {statusName === 'pending_verification' && appointment.payment && (
+              <PremiumCard title="Verificación de Pago" icon={CreditCard}>
+                <div className="bg-orange-50/50 border border-orange-100 rounded-3xl p-8 space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-orange-600">
+                           <DollarSign className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-orange-400 uppercase tracking-widest leading-none mb-1">Monto a verificar</p>
+                          <p className="text-3xl font-black text-orange-900">${appointment.payment.amount_usd} USD</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-white/50 rounded-2xl border border-white">
+                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Método</p>
+                           <p className="text-sm font-bold text-slate-700 capitalize">{appointment.payment.method.replace('_', ' ')}</p>
+                        </div>
+                        <div className="p-4 bg-white/50 rounded-2xl border border-white">
+                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Referencia</p>
+                           <p className="text-sm font-bold text-slate-700 font-mono">{appointment.payment.reference || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 justify-center">
+                      <button
+                        onClick={() => handleVerify('approve')}
+                        className="px-8 py-4 bg-green-600 text-white rounded-2xl font-black text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-200 flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle2 className="h-5 w-5" />
+                        Aprobar Pago
+                      </button>
+                      <button
+                        onClick={() => handleVerify('reject')}
+                        className="px-8 py-4 border border-rose-200 text-rose-600 bg-white rounded-2xl font-black text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
+                      >
+                        <XCircle className="h-5 w-5" />
+                        Rechazar Pago
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-6 border-t border-orange-100/50 flex items-center gap-2 text-orange-600/70 italic text-sm font-medium">
+                     <AlertCircle className="h-4 w-4" />
+                     Al aprobar el pago, la cita se marcará automáticamente como programada.
+                  </div>
+                </div>
+              </PremiumCard>
+            )}
+
             {/* Consultation Summary Card */}
             <PremiumCard title="Datos de la Cita" icon={Calendar}>
                <div className="space-y-1">
-                 <InfoRow label="Modaliad" value={appointment.type === 'virtual' ? '🎥 Telemedicina' : '🏛️ Presencial'} />
+                 <InfoRow label="Modalidad" value={appointment.type === 'videoconsulta' ? '🎥 Videoconsulta' : '📞 Teleconsulta'} />
                  <InfoRow label="Motivo" value={appointment.reason || 'General'} />
                  {appointment.price_usd && (
                    <InfoRow label="Honorarios" value={`$${parseFloat(String(appointment.price_usd)).toFixed(2)} USD`} />

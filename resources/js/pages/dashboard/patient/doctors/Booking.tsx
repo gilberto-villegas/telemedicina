@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { authService, User } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -28,6 +28,9 @@ interface Doctor {
 export default function BookingPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const type = queryParams.get('type') || 'videoconsulta'; // Default to video if not specified
   const [user, setUser] = useState<User | null>(null);
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
@@ -103,8 +106,9 @@ export default function BookingPage() {
       const appoResponse = await api.post('/appointments', {
         doctor_id: id,
         appointment_date: appointmentDate,
-        reason: 'Consulta médica', // Placeholder, will update later or provide at confirmation
-        duration_minutes: 30
+        reason: 'Consulta médica',
+        duration_minutes: 30,
+        type: type // Send selected type to backend
       });
 
       const appointmentId = appoResponse.data.appointment.id;
@@ -181,6 +185,17 @@ export default function BookingPage() {
                 <div>
                   <h2 className="text-xl font-bold">Dr. {doctor.first_name} {doctor.last_name}</h2>
                   <p className="text-primary font-medium">{doctor.specialty}</p>
+                </div>
+                <div className="pt-2">
+                  <span className={cn(
+                    "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
+                    type === 'videoconsulta' ? "bg-blue-100 text-blue-600" :
+                    type === 'teleconsulta' ? "bg-emerald-100 text-emerald-600" :
+                    "bg-indigo-100 text-indigo-600"
+                  )}>
+                    {type === 'videoconsulta' ? 'Videoconsulta' :
+                     type === 'teleconsulta' ? 'Teleconsulta' : 'Presencial'}
+                  </span>
                 </div>
                 <div className="pt-4 border-t border-primary/10">
                   <p className="text-sm text-muted-foreground uppercase tracking-wider font-bold">Costo de Consulta</p>

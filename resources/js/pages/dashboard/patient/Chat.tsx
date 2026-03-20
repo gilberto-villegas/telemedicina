@@ -39,12 +39,15 @@ interface Chat {
   };
   last_message?: Message;
   unread_count?: number;
+  status?: string;
+  start_time?: string;
 }
 
 export default function ChatPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const doctorId = searchParams.get('doctor');
+  const appointmentId = searchParams.get('appointment');
 
   const [user, setUser] = useState<User | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
@@ -108,7 +111,12 @@ export default function ChatPage() {
       setChats(response.data || []);
 
       // Si hay un doctorId en la URL, seleccionar o crear ese chat
-      if (doctorId) {
+      if (appointmentId) {
+        const existingChat = response.data?.find((chat: Chat) => chat.id === appointmentId);
+        if (existingChat) {
+          setSelectedChat(existingChat);
+        }
+      } else if (doctorId) {
         const existingChat = response.data?.find((chat: Chat) => chat.doctor?.id === doctorId);
         if (existingChat) {
           setSelectedChat(existingChat);
@@ -164,8 +172,8 @@ export default function ChatPage() {
       }
 
       scrollToBottom();
-    } catch (error) {
-      alert('Error al enviar el mensaje');
+    } catch (error: any) {
+      alert('Error al enviar el mensaje: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -195,7 +203,19 @@ export default function ChatPage() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h2 className="font-semibold text-lg">Conversaciones</h2>
+            <h2 className="font-semibold text-lg flex-1">Conversaciones</h2>
+            {appointmentId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchParams({ doctor: doctorId || '' });
+                }}
+                className="text-blue-600 hover:text-blue-700 text-xs"
+              >
+                Ver todas
+              </Button>
+            )}
           </div>
           <div className="overflow-y-auto h-[calc(100vh-16rem)]">
             {chats.length === 0 ? (
@@ -204,7 +224,9 @@ export default function ChatPage() {
                 <p className="text-sm">No tienes conversaciones</p>
               </div>
             ) : (
-              chats.map((chat) => (
+              chats
+                .filter(chat => !appointmentId || chat.id === appointmentId)
+                .map((chat) => (
                 <div
                   key={chat.id}
                   onClick={() => setSelectedChat(chat)}
@@ -213,22 +235,48 @@ export default function ChatPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold">
-                        {chat.doctor
-                          ? `Dr. ${chat.doctor.first_name} ${chat.doctor.last_name}`
-                          : chat.patient
-                            ? `${chat.patient.first_name} ${chat.patient.last_name}`
-                            : 'Chat'
-                        }
-                      </h3>
-                      {chat.last_message && (
-                        <p className="text-sm text-gray-600 truncate mt-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold text-sm">
+                          {chat.doctor
+                            ? `Dr. ${chat.doctor.first_name} ${chat.doctor.last_name}`
+                            : chat.patient
+                              ? `${chat.patient.first_name} ${chat.patient.last_name}`
+                              : 'Chat'
+                          }
+                        </h3>
+                        {chat.start_time && (
+                          <span className="text-[10px] text-gray-400">
+                            {format(new Date(chat.start_time), "dd/MM", { locale: es })}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {chat.status && (
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                            chat.status === 'in_progress' ? 'bg-green-100 text-green-700' :
+                            chat.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-600'
+                          }`}>
+                            {chat.status === 'in_progress' ? 'En curso' :
+                             chat.status === 'scheduled' ? 'Programado' :
+                             chat.status === 'completed' ? 'Completado' :
+                             chat.status === 'pending_payment' ? 'Pago pendiente' :
+                             chat.status}
+                          </span>
+                        </div>
+                      )}
+
+                      {chat.last_message ? (
+                        <p className="text-xs text-gray-600 truncate">
                           {chat.last_message.message}
                         </p>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">Sin mensajes</p>
                       )}
                     </div>
                     {chat.unread_count && chat.unread_count > 0 && (
-                      <span className="bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      <span className="bg-primary text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center ml-2">
                         {chat.unread_count}
                       </span>
                     )}
@@ -245,16 +293,27 @@ export default function ChatPage() {
             <>
               {/* Header del Chat */}
               <div className="p-4 border-b">
-                <h3 className="font-semibold">
-                  {selectedChat.doctor
-                    ? `Dr. ${selectedChat.doctor.first_name} ${selectedChat.doctor.last_name}`
-                    : selectedChat.patient
-                      ? `${selectedChat.patient.first_name} ${selectedChat.patient.last_name}`
-                      : 'Chat'
-                  }
-                </h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="font-semibold">
+                    {selectedChat.doctor
+                      ? `Dr. ${selectedChat.doctor.first_name} ${selectedChat.doctor.last_name}`
+                      : selectedChat.patient
+                        ? `${selectedChat.patient.first_name} ${selectedChat.patient.last_name}`
+                        : 'Chat'
+                    }
+                  </h3>
+                  {selectedChat.start_time && (
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                      Cita: {format(new Date(selectedChat.start_time), "dd/MM HH:mm", { locale: es })}
+                    </span>
+                  )}
+                </div>
                 {selectedChat.doctor && (
-                  <p className="text-sm text-gray-600">{selectedChat.doctor.specialty}</p>
+                  <p className="text-sm text-gray-600">
+                    {typeof selectedChat.doctor.specialty === 'object' 
+                      ? (selectedChat.doctor.specialty as any)?.name 
+                      : selectedChat.doctor.specialty}
+                  </p>
                 )}
               </div>
 
@@ -286,24 +345,24 @@ export default function ChatPage() {
               </div>
 
               {/* Input de Mensaje */}
-              <div className="p-4 border-t">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  sendMessage();
+                }}
+                className="p-4 border-t"
+              >
                 <div className="flex gap-2">
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
                     placeholder="Escribe un mensaje..."
                   />
-                  <Button onClick={sendMessage} disabled={!newMessage.trim()}>
+                  <Button type="submit" disabled={!newMessage.trim()}>
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
+              </form>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">

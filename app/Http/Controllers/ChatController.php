@@ -13,7 +13,7 @@ class ChatController extends Controller
     {
         $user = $request->user();
 
-        // Obtener chats vinculados a citas
+        // Obtener appointments del usuario
         $appointments = \App\Models\Appointment::where(function($query) use ($user) {
                 if ($user->isPatient()) {
                     $query->where('patient_id', $user->id);
@@ -26,12 +26,18 @@ class ChatController extends Controller
             ->get();
 
         $chats = $appointments->map(function($appointment) use ($user) {
-            $otherUser = $user->isPatient() ? $appointment->doctor : $appointment->patient;
-            
             // Obtener último mensaje
             $lastMessage = \App\Models\Message::where('appointment_id', $appointment->id)
                 ->orderBy('created_at', 'desc')
                 ->first();
+
+            // Solo mostrar si tiene mensajes O si está activo (programado o en curso)
+            $isVisible = $lastMessage !== null || 
+                        ($appointment->status && in_array($appointment->status->name, ['scheduled', 'in_progress']));
+
+            if (!$isVisible) {
+                return null;
+            }
 
             // Contar no leídos
             $unreadCount = \App\Models\Message::where('appointment_id', $appointment->id)
@@ -58,8 +64,9 @@ class ChatController extends Controller
                 ] : null,
                 'unread_count' => $unreadCount,
                 'status' => $appointment->status?->name,
+                'start_time' => $appointment->start_time->toISOString(),
             ];
-        });
+        })->filter()->values();
 
         return response()->json($chats);
     }
@@ -72,23 +79,33 @@ class ChatController extends Controller
 
         // Crear o encontrar chat basado en appointment
         $appointment = null;
-        if ($user->isPatient() && $doctorId) {
-            $appointment = \App\Models\Appointment::where('patient_id', $user->id)
-                ->where('doctor_id', $doctorId)
-                ->first();
-        } elseif ($user->isDoctor() && $patientId) {
-            $appointment = \App\Models\Appointment::where('doctor_id', $user->id)
-                ->where('patient_id', $patientId)
-                ->first();
+        if ($request->has('appointment_id')) {
+            $appointment = \App\Models\Appointment::find($request->appointment_id);
+        }
+
+        if (!$appointment) {
+            if ($user->isPatient() && $doctorId) {
+                $appointment = \App\Models\Appointment::where('patient_id', $user->id)
+                    ->where('doctor_id', $doctorId)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+            } elseif ($user->isDoctor() && $patientId) {
+                $appointment = \App\Models\Appointment::where('doctor_id', $user->id)
+                    ->where('patient_id', $patientId)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+            }
         }
 
         if (!$appointment) {
             return response()->json(['message' => 'No se encontró cita relacionada'], 404);
         }
 
-        $otherUser = $user->isPatient() 
-            ? User::find($doctorId)
-            : User::find($patientId);
+        $otherUserId = $user->isPatient() 
+            ? ($doctorId ?: $appointment->doctor_id)
+            : ($patientId ?: $appointment->patient_id);
+
+        $otherUser = User::find($otherUserId);
 
         return response()->json([
             'id' => $appointment->id,

@@ -12,6 +12,9 @@ class Appointment extends Model
 {
     use HasFactory, HasUuids;
 
+    const TYPE_VIDEO = 'videoconsulta';
+    const TYPE_TELE = 'teleconsulta';
+
     protected $fillable = [
         'patient_id',
         'doctor_id',
@@ -96,8 +99,19 @@ class Appointment extends Model
     // Helpers
     public function isVirtual(): bool
     {
-        return $this->type === 'virtual';
+        return in_array($this->type, [self::TYPE_VIDEO, self::TYPE_TELE]);
     }
+
+    public function isVideo(): bool
+    {
+        return $this->type === self::TYPE_VIDEO;
+    }
+
+    public function isTeleconsulta(): bool
+    {
+        return $this->type === self::TYPE_TELE;
+    }
+
 
     public function isCompleted(): bool
     {

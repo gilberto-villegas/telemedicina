@@ -13,6 +13,7 @@ import {
     TrendingUp,
     Users,
     ChevronRight,
+    Settings,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -389,6 +390,13 @@ export default function DashboardType() {
                                     color="bg-blue-600"
                                 />
                                 <QuickActionButton 
+                                    to={`/dashboard/${user.type}/payments`}
+                                    icon={CreditCard}
+                                    label="Validar Pagos"
+                                    sub="Verificar pagos de pacientes"
+                                    color="bg-orange-600"
+                                />
+                                <QuickActionButton 
                                     to={`/dashboard/${user.type}/availability`}
                                     icon={Clock}
                                     label="Disponibilidad"
@@ -404,9 +412,9 @@ export default function DashboardType() {
                                 />
                                 <QuickActionButton 
                                     to={`/dashboard/${user.type}/settings`}
-                                    icon={CreditCard}
-                                    label="Pagos y Precios"
-                                    sub="Control financiero y configuración"
+                                    icon={Settings}
+                                    label="Mi Tarifa y Cobros"
+                                    sub="Control financiero y perfil"
                                     color="bg-rose-600"
                                 />
                             </div>

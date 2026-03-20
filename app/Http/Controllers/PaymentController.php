@@ -153,8 +153,13 @@ class PaymentController extends Controller
                 'status_id' => Status::where('name', 'scheduled')->first()->id
             ]);
             
+            
             // Enviar notificación al paciente
-            $payment->appointment->patient->notify(new PaymentVerifiedNotification($payment->appointment->load('status')));
+            try {
+                $payment->appointment->patient->notify(new PaymentVerifiedNotification($payment->appointment->load('status')));
+            } catch (\Exception $e) {
+                \Log::warning('Error enviando notificación de pago: ' . $e->getMessage());
+            }
         } else {
             $payment->update([
                 'status_id' => Status::where('name', 'payment_failed')->first()->id,

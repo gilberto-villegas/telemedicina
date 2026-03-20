@@ -76,20 +76,15 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
 
   const loadChat = async () => {
     try {
-      // Buscar el chat asociado a esta cita
       const response = await api.get('/chats');
-      const chat = response.data?.find((c: any) => c.appointment_id === appointmentId);
+      // El backend devuelve id como appointmentId en el índice de chats
+      const chat = response.data?.find((c: any) => c.id === appointmentId || c.appointment_id === appointmentId);
       if (chat) {
         setChatId(chat.id);
-      } else {
-        // Si no existe, el controlador index debería devolverlo si existe cita
-        // Pero por seguridad, si no lo encontramos, intentamos cargar por citaId en el backend
-        // (Asumimos que el backend maneja la relación chats <-> appointments)
       }
     } catch (error) {
       console.error('Error loading chat for appointment:', error);
     } finally {
-      // Si no encontramos chatId aquí, lo intentaremos de nuevo al cargar mensajes o al enviar el primero
       setLoading(false);
     }
   };
@@ -114,8 +109,8 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
             const res = await api.post('/chats', { appointment_id: appointmentId });
             currentChatId = res.data.id;
             setChatId(currentChatId);
-        } catch (e) {
-            console.error("No se pudo iniciar el chat para la cita", e);
+        } catch (e: any) {
+            alert("Error al iniciar chat: " + (e.response?.data?.message || e.message));
             return;
         }
     }
@@ -138,8 +133,8 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
       }
 
       scrollToBottom();
-    } catch (error) {
-      console.error('Error sending message:', error);
+    } catch (error: any) {
+      alert("Error al enviar mensaje: " + (error.response?.data?.message || error.message));
     }
   };
 
@@ -148,7 +143,7 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-l w-80 shadow-xl animate-in slide-in-from-right duration-300">
+    <div className="flex flex-col h-full bg-white border-l w-full sm:w-80 shadow-2xl animate-in slide-in-from-right duration-300">
       <div className="p-4 border-b flex items-center justify-between bg-slate-50">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-blue-600" />
@@ -196,29 +191,29 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t bg-white">
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault();
+          sendMessage();
+        }}
+        className="p-4 border-t bg-white"
+      >
         <div className="flex gap-2">
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
             placeholder="Escribe un mensaje..."
             className="rounded-xl border-slate-200 focus:ring-blue-500"
           />
           <Button 
-            onClick={sendMessage} 
+            type="submit"
             disabled={!newMessage.trim()}
             className="bg-blue-600 hover:bg-blue-700 rounded-xl px-3"
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

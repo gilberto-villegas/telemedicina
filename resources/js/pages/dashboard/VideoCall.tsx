@@ -224,7 +224,7 @@ export default function VideoCallPage() {
           </Card>
 
           {showChat && appointment && (
-            <div className="hidden lg:block h-full">
+            <div className="absolute inset-y-0 right-0 z-50 w-full sm:w-80 lg:relative lg:w-80 h-full shadow-2xl lg:shadow-none">
                <ChatSidebar 
                   appointmentId={appointment.id} 
                   userId={user.id} 

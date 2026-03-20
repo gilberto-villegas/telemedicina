@@ -108,7 +108,7 @@ class AppointmentController extends Controller
         }
 
         // Formatear respuesta para incluir appointment_date
-        $appointment->load('status');
+        $appointment->load(['status', 'patient', 'payment.status']);
         $appointmentData = $appointment->toArray();
         $appointmentData['status_label'] = $appointment->status ? $appointment->status->label : 'Desconocido';
         
@@ -156,6 +156,7 @@ class AppointmentController extends Controller
             'appointment_date' => 'required|date|after:now',
             'reason' => 'nullable|string',
             'duration_minutes' => 'nullable|integer|min:15|max:120',
+            'type' => 'required|string|in:videoconsulta,teleconsulta',
         ]);
 
         // Verificar que el doctor existe y es válido
@@ -203,7 +204,7 @@ class AppointmentController extends Controller
             'start_time' => $startTime,
             'end_time' => $endTime,
             'reason' => $validated['reason'] ?? null,
-            'type' => 'virtual',
+            'type' => $validated['type'],
             'status_id' => Status::where('name', 'pending_payment')->first()->id,
             'price_usd' => $doctor->consultation_price_usd ?? 25.00,
             'price_ves' => ($doctor->consultation_price_usd ?? 25.00) * $exchangeRate,
@@ -252,12 +253,19 @@ class AppointmentController extends Controller
             return response()->json(['message' => 'Acceso denegado'], 403);
         }
 
-        // Generar room ID si no existe
-        if (!$appointment->video_room_id) {
+        // Generar room ID si no existe y es Videoconsulta
+        if ($appointment->type === Appointment::TYPE_VIDEO && !$appointment->video_room_id) {
             $appointment->update([
                 'video_room_id' => Str::random(32),
                 'status_id' => Status::where('name', 'in_progress')->first()->id
             ]);
+        } elseif ($appointment->type !== Appointment::TYPE_VIDEO) {
+            // Para otros tipos, solo marcar como en progreso
+            if ($appointment->status->name === 'scheduled') {
+                $appointment->update([
+                    'status_id' => Status::where('name', 'in_progress')->first()->id
+                ]);
+            }
         }
 
         return response()->json([

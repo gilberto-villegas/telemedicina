@@ -11,6 +11,7 @@ import { Stethoscope, Star, Search, ChevronRight, ArrowLeft, MessageSquare } fro
 import { api } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import { SpecialtyAlphabetFilter } from '@/components/doctors/SpecialtyAlphabetFilter';
+import { AppointmentTypeModal } from '@/components/appointments/AppointmentTypeModal';
 
 interface Doctor {
   id: string;
@@ -40,6 +41,13 @@ export default function DoctorsPage() {
   const [specialtyIdFilter, setSpecialtyIdFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [viewStep, setViewStep] = useState<'search' | 'results'>('search');
+
+  const normalizeString = (str: string) => 
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -80,8 +88,8 @@ export default function DoctorsPage() {
 
     const matchesSpecialty = !specialtyIdFilter || 
       doctor.specialty_id === specialtyIdFilter || 
-      (typeof doctor.specialty === 'string' && doctor.specialty.toLowerCase() === specialtyFilter.toLowerCase()) ||
-      (typeof doctor.specialty === 'object' && doctor.specialty?.name?.toLowerCase() === specialtyFilter.toLowerCase());
+      (typeof doctor.specialty === 'string' && normalizeString(doctor.specialty) === normalizeString(specialtyFilter)) ||
+      (typeof doctor.specialty === 'object' && doctor.specialty?.name && normalizeString(doctor.specialty.name) === normalizeString(specialtyFilter));
 
     return matchesSearch && matchesSpecialty;
   });
@@ -246,12 +254,16 @@ export default function DoctorsPage() {
                       </div>
 
                       <div className="flex gap-3">
-                        <Link to={`/dashboard/patient/doctors/${doctor.id}/book`} className="flex-1">
-                          <Button className="w-full h-12 rounded-xl text-lg font-semibold group-hover:shadow-[0_10px_20px_-10px_rgba(var(--primary),0.5)] transition-all">
-                            Agendar Cita
-                            <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                          </Button>
-                        </Link>
+                        <Button 
+                          onClick={() => {
+                            setSelectedDoctor(doctor);
+                            setIsModalOpen(true);
+                          }}
+                          className="flex-1 h-12 rounded-xl text-lg font-semibold group-hover:shadow-[0_10px_20px_-10px_rgba(var(--primary),0.5)] transition-all"
+                        >
+                          Agendar Cita
+                          <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                        </Button>
                         <Link to={`/dashboard/patient/chat?doctor=${doctor.id}`}>
                           <Button variant="outline" className="h-12 w-12 rounded-xl border-slate-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all p-0">
                             <MessageSquare className="h-6 w-6" />
@@ -266,6 +278,18 @@ export default function DoctorsPage() {
           </div>
         )}
       </div>
+
+      {selectedDoctor && (
+        <AppointmentTypeModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          doctorName={`${selectedDoctor.first_name} ${selectedDoctor.last_name}`}
+          onSelect={(type) => {
+            setIsModalOpen(false);
+            navigate(`/dashboard/patient/doctors/${selectedDoctor.id}/book?type=${type}`);
+          }}
+        />
+      )}
     </DashboardLayout>
   );
 }

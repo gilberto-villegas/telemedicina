@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService, User } from '@/lib/auth';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Calendar, Clock, Video, Stethoscope, CheckCircle, XCircle, ArrowLeft, Plus, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, Video, Stethoscope, CheckCircle, XCircle, ArrowLeft, Plus, MessageSquare, Phone } from 'lucide-react';
 import { api } from '@/lib/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -13,6 +13,7 @@ interface Appointment {
   status: string;
   status_name: string;
   reason: string;
+  type: 'videoconsulta' | 'teleconsulta';
   duration_minutes: number;
   doctor?: { id: string; first_name: string; last_name: string; specialty: any; avatar_url?: string; };
 }
@@ -44,6 +45,10 @@ function AppointmentCard({ apt, onCancel }: {
   const specialty = apt.doctor?.specialty;
   const videoBase = `/dashboard/patient/appointments/${apt.id}/video`;
 
+  const TypeIcon = apt.type === 'videoconsulta' ? Video : Phone;
+  const typeLabel = apt.type === 'videoconsulta' ? 'Videoconsulta' : 'Teleconsulta';
+  const typeColor = apt.type === 'videoconsulta' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600';
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       <div className="flex items-stretch">
@@ -67,6 +72,10 @@ function AppointmentCard({ apt, onCancel }: {
                 </div>
                 <h3 className="font-bold text-gray-900">{persona}</h3>
                 <StatusBadge statusName={apt.status_name} status={apt.status} />
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${typeColor}`}>
+                  <TypeIcon className="w-3 h-3" />
+                  {typeLabel}
+                </span>
               </div>
               {specialty && (
                 <p className="text-xs text-gray-500 ml-10 mt-0.5">
@@ -86,12 +95,22 @@ function AppointmentCard({ apt, onCancel }: {
             <div className="flex flex-col gap-2 flex-shrink-0">
               {apt.status_name === 'scheduled' && (
                 <>
-                  <Link to={videoBase}>
-                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition-all w-full">
-                      <Video className="h-3.5 w-3.5" />
-                      Unirse
-                    </button>
-                  </Link>
+                  {apt.type === 'videoconsulta' && (
+                    <Link to={videoBase}>
+                      <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition-all w-full">
+                        <Video className="h-3.5 w-3.5" />
+                        Unirse
+                      </button>
+                    </Link>
+                  )}
+                  {apt.type === 'teleconsulta' && (
+                    <Link to={`/dashboard/patient/chat?doctor=${apt.doctor?.id}&appointment=${apt.id}`}>
+                      <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition-all w-full">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        Chat
+                      </button>
+                    </Link>
+                  )}
                   <button
                     onClick={() => onCancel(apt.id)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold hover:bg-red-100 transition-all"
@@ -117,7 +136,7 @@ function AppointmentCard({ apt, onCancel }: {
                   </button>
                 </Link>
               )}
-              <Link to={`/dashboard/patient/chat?doctor=${apt.doctor?.id}`} className="w-full">
+              <Link to={`/dashboard/patient/chat?doctor=${apt.doctor?.id}&appointment=${apt.id}`} className="w-full">
                 <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-all w-full">
                   <MessageSquare className="h-3.5 w-3.5" />
                   Chat
@@ -137,6 +156,7 @@ export default function PatientAppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'videoconsulta' | 'teleconsulta'>('all');
 
   useEffect(() => {
     if (!authService.isAuthenticated()) { navigate('/auth/login'); return; }
@@ -176,7 +196,9 @@ export default function PatientAppointmentsPage() {
     new Date(a.appointment_date) <= new Date() || ['completed', 'cancelled'].includes(a.status_name)
   ).sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime());
 
-  const displayed = activeTab === 'upcoming' ? upcoming : past;
+  const displayed = activeTab === 'upcoming' 
+    ? upcoming.filter(a => typeFilter === 'all' || a.type === typeFilter)
+    : past.filter(a => typeFilter === 'all' || a.type === typeFilter);
 
   return (
     <DashboardLayout user={user}>
@@ -240,6 +262,22 @@ export default function PatientAppointmentsPage() {
                 }`}
               >
                 {tab === 'upcoming' ? `Próximas` : `Historial`}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-1 bg-white p-1 rounded-2xl w-fit border border-slate-200 shadow-sm">
+            {(['all', 'videoconsulta', 'teleconsulta'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  typeFilter === t 
+                    ? 'bg-blue-600 text-white shadow-md' 
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {t === 'all' ? 'Todas' : t.charAt(0).toUpperCase() + t.slice(1)}
               </button>
             ))}
           </div>
