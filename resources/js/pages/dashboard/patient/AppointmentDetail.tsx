@@ -6,11 +6,14 @@ import { api } from '@/lib/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  ArrowLeft, Calendar, Clock,
+  ArrowLeft, Calendar, Clock, DollarSign,
   FileText, Pill, AlertCircle,
   Printer, Download, Stethoscope, Activity, Heart, Thermometer,
-  Shield, CheckCircle2, ChevronRight, User as UserIcon, MessageSquare
+  Shield, CheckCircle2, ChevronRight, User as UserIcon, MessageSquare,
+  FileSearch, DownloadCloud
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface AppointmentData {
   id: string;
@@ -45,6 +48,9 @@ interface AppointmentData {
     created_at: string;
   } | null;
   payment?: { id: string; amount_usd: number; method: string; status: string; reference: string; } | null;
+  medical_responses?: Array<{ id: string; question: { question_text: string }; response_text: string; body_parts: string[] | null }>;
+  attachments?: Array<{ id: string; file_url: string; file_name: string; file_type: string }>;
+  unread_messages_count?: number;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: any }> = {
@@ -297,15 +303,48 @@ export default function PatientAppointmentDetailPage() {
     loadAppointment();
   }, [id, navigate]);
 
+  const [paymentInstructions, setPaymentInstructions] = useState<any>(null);
+  const [paymentData, setPaymentData] = useState({ reference: '', phone: '', date: new Date().toISOString().split('T')[0] });
+  const [submittingPayment, setSubmittingPayment] = useState(false);
+
   const loadAppointment = async () => {
     try {
       setLoading(true);
       const response = await api.get(`/appointments/${id}`);
       setAppointment(response.data);
+
+      if (response.data.status?.name === 'pending_payment' && response.data.payment) {
+        try {
+          const instRes = await api.get(`/payments/${response.data.payment.id}/instructions`);
+          setPaymentInstructions(instRes.data.instructions);
+        } catch { console.warn('No instructions found'); }
+      }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Error al cargar la cita');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!appointment?.payment?.id || !paymentData.reference) return;
+
+    setSubmittingPayment(true);
+    try {
+      const payload: any = {
+        reference_number: paymentData.reference,
+        payment_date: paymentData.date,
+      };
+      if (paymentData.phone) payload.payment_phone = paymentData.phone;
+
+      await api.post(`/payments/${appointment.payment.id}/confirm`, payload);
+      alert('Pago registrado correctamente. Notificaremos al doctor.');
+      loadAppointment(); // Recargar para actualizar los nuevos estados
+    } catch (error: any) {
+      console.error('Error confirming payment:', error);
+      alert(error.response?.data?.message || 'Error al confirmar el pago.');
+    } finally {
+      setSubmittingPayment(false);
     }
   };
 
@@ -406,14 +445,23 @@ export default function PatientAppointmentDetailPage() {
             </div>
 
             {(record || prescription) && (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={printAll}
                   className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-200 active:scale-95 group"
                 >
                   <Printer className="h-5 w-5 transition-transform group-hover:scale-110" />
-                  <span>Descargar Todo</span>
+                  <span>Historia Médica (+ Receta)</span>
                 </button>
+                {prescription && (
+                  <button
+                    onClick={printPrescription}
+                    className="flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200 active:scale-95 group"
+                  >
+                    <Download className="h-5 w-5 transition-transform group-hover:scale-110" />
+                    <span>Solo Receta Médica</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -422,6 +470,121 @@ export default function PatientAppointmentDetailPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Info Column */}
           <div className="lg:col-span-2 space-y-8">
+            {/* CTA: Completar Pago */}
+            {appointment.status?.name === 'pending_payment' && appointment.payment && (
+              <div className="p-8 rounded-[2rem] bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-2xl shadow-amber-500/20 animate-in zoom-in-95 duration-500 relative overflow-hidden group">
+                <div className="absolute right-[-20px] top-[-20px] opacity-10 transition-transform group-hover:scale-110 duration-700 pointer-events-none">
+                  <DollarSign className="h-48 w-48" />
+                </div>
+                <div className="relative z-10 space-y-6">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="h-16 w-16 bg-white/20 backdrop-blur-xl rounded-[1.2rem] flex items-center justify-center shrink-0">
+                      <Clock className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="text-center md:text-left flex-1">
+                      <h2 className="text-2xl font-black mb-1 uppercase tracking-tight text-white !text-white">Pago sin Confirmar</h2>
+                      <p className="text-amber-50 font-medium leading-relaxed">
+                        Tienes una reserva iniciada por <strong className="uppercase">{appointment.payment.method}</strong>. Para confirmar tu cita, realiza el pago por <strong>${appointment.payment.amount_usd} USD</strong> y registra tu comprobante aquí.
+                      </p>
+                    </div>
+                  </div>
+
+                  {paymentInstructions && (
+                    <div className="bg-black/10 rounded-2xl p-6 backdrop-blur-sm border border-white/20 text-shadow-sm">
+                      {appointment.payment.method === 'pago_movil' && (
+                        <div className="text-center space-y-1">
+                          <p className="text-sm font-bold uppercase text-amber-100">Datos para Pago Móvil</p>
+                          <p className="text-2xl font-black">{paymentInstructions.details?.bank}</p>
+                          <p className="text-lg font-bold">{paymentInstructions.details?.phone}</p>
+                          <p className="text-md font-medium">{paymentInstructions.details?.document_id}</p>
+                        </div>
+                      )}
+                      {appointment.payment.method === 'zelle' && (
+                        <div className="text-center space-y-1">
+                          <p className="text-sm font-bold uppercase text-amber-100">Datos para Zelle</p>
+                          <p className="text-2xl font-black">{paymentInstructions.details?.email}</p>
+                          <p className="text-lg font-bold">{paymentInstructions.details?.holder}</p>
+                        </div>
+                      )}
+                      {appointment.payment.method === 'bank_transfer' && (
+                        <div className="space-y-2">
+                          <p className="text-sm font-bold uppercase text-amber-100 text-center">Datos para Transferencia</p>
+                          <div className="grid grid-cols-2 gap-2 text-sm text-center sm:text-left pt-2 border-t border-white/10">
+                            <span className="text-amber-100">Banco:</span><span className="font-bold">{paymentInstructions.details?.bank_name}</span>
+                            <span className="text-amber-100">Cuenta:</span><span className="font-bold">{paymentInstructions.details?.account_number}</span>
+                            <span className="text-amber-100">Titular:</span><span className="font-bold">{paymentInstructions.details?.account_holder}</span>
+                            <span className="text-amber-100">Documento:</span><span className="font-bold">{paymentInstructions.details?.document_id}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="bg-white text-slate-800 p-6 sm:p-8 rounded-[1.5rem] shadow-xl space-y-5">
+                    <h3 className="font-bold text-lg text-center uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-4">Registrar Comprobante</h3>
+                    <div className="space-y-5">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase">Número de Referencia</label>
+                        <input
+                          type="text"
+                          placeholder="Últimos 6 dígitos o ID"
+                          className="w-full h-14 px-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium text-slate-900 bg-slate-50"
+                          value={paymentData.reference}
+                          onChange={(e) => setPaymentData({ ...paymentData, reference: e.target.value })}
+                        />
+                      </div>
+                      
+                      {appointment.payment.method === 'pago_movil' && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase">Teléfono Emisor</label>
+                          <input
+                            type="text"
+                            placeholder="Ej. 04141234567"
+                            className="w-full h-14 px-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium text-slate-900 bg-slate-50"
+                            value={paymentData.phone}
+                            onChange={(e) => setPaymentData({ ...paymentData, phone: e.target.value })}
+                          />
+                        </div>
+                      )}
+
+                      <Button 
+                        onClick={handleConfirmPayment}
+                        disabled={submittingPayment || !paymentData.reference}
+                        className="w-full h-14 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-lg shadow-lg shadow-amber-500/20 active:scale-95 transition-all outline-none border-none border-0"
+                      >
+                        {submittingPayment ? 'Enviando comprobante...' : 'Confirmar Pago'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* CTA: Questionnaire */}
+            {appointment.status?.name !== 'pending_payment' && appointment.status?.name !== 'cancelled' && (!appointment.medical_responses || appointment.medical_responses.length === 0) && (
+              <div className="p-8 rounded-[2rem] bg-gradient-to-br from-primary to-indigo-600 text-white shadow-2xl shadow-primary/20 animate-in zoom-in-95 duration-500 relative overflow-hidden group">
+                <div className="absolute right-[-20px] top-[-20px] opacity-10 transition-transform group-hover:scale-110 duration-700">
+                  <FileText className="h-48 w-48" />
+                </div>
+                <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                  <div className="h-20 w-20 bg-white/20 backdrop-blur-xl rounded-[1.5rem] flex items-center justify-center">
+                    <Activity className="h-10 w-10 text-white" />
+                  </div>
+                  <div className="flex-1 text-center md:text-left">
+                    <h2 className="text-2xl font-black mb-2 uppercase tracking-tight">Cuestionario Médico Pendiente</h2>
+                    <p className="text-blue-100 font-medium leading-relaxed">
+                      Para que el Dr. {appointment.doctor?.first_name} pueda prepararse mejor para su consulta, por favor responda unas breves preguntas sobre su salud.
+                    </p>
+                  </div>
+                  <Link to={`/dashboard/patient/appointments/${appointment.id}/questionnaire`} className="shrink-0 w-full md:w-auto">
+                    <Button className="w-full h-14 px-8 rounded-2xl bg-white text-primary hover:bg-white/90 font-black text-lg gap-2 shadow-xl shadow-black/10 active:scale-95 transition-all">
+                      Completar Ahora
+                      <ChevronRight className="h-6 w-6" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* Appointment Info */}
             <PremiumCard title="Resumen de Consulta" icon={Calendar}>
@@ -466,8 +629,13 @@ export default function PatientAppointmentDetailPage() {
                             </p>
                           </div>
                           <Link to={`/dashboard/patient/chat?doctor=${appointment.doctor.id}&appointment=${appointment.id}`} className="ml-4">
-                            <button className="p-3 bg-white text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100">
+                            <button className="relative p-3 bg-white text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100 group/chat">
                               <MessageSquare className="h-5 w-5" />
+                              {Number(appointment.unread_messages_count) > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-lg border-2 border-white animate-bounce">
+                                  {appointment.unread_messages_count}
+                                </span>
+                              )}
                             </button>
                           </Link>
                         </div>
@@ -479,7 +647,7 @@ export default function PatientAppointmentDetailPage() {
             </PremiumCard>
 
             {/* ========== MEDICAL RECORD ========== */}
-            {record ? (
+            {record && (
               <PremiumCard
                 title="Informe Clínico Digital"
                 icon={Stethoscope}
@@ -562,12 +730,76 @@ export default function PatientAppointmentDetailPage() {
                   )}
                 </div>
               </PremiumCard>
-            ) : statusName === 'completed' && (
+            )}
+
+            {!record && statusName === 'completed' && (
               <div className="p-10 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center bg-slate-50/50">
                 <FileText className="h-12 w-12 text-slate-300 mb-4" />
                 <h3 className="font-bold text-slate-700">Informe Médico Pendiente</h3>
                 <p className="text-slate-500 text-sm max-w-xs mt-2">El doctor está redactando su informe. Estará disponible en unos instantes.</p>
               </div>
+            )}
+
+            {/* ========== MEDICAL QUESTIONNAIRE RESULTS ========== */}
+            {appointment.medical_responses && appointment.medical_responses.length > 0 && (
+              <PremiumCard title="Información de Triage / Cuestionario" icon={FileSearch}>
+                <div className="space-y-10">
+                  <div className="grid md:grid-cols-2 gap-10">
+                    <div className="space-y-8">
+                      {appointment.medical_responses.map((resp) => (
+                        <div key={resp.id} className="space-y-2 group">
+                          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest transition-colors group-hover:text-primary">
+                            {resp.question?.question_text || 'Pregunta Médica'}
+                          </h4>
+                          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100/50 text-slate-700 font-medium leading-relaxed shadow-sm">
+                            {resp.response_text || 'Sin respuesta'}
+                            {Array.isArray(resp.body_parts) && resp.body_parts.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-4">
+                                {resp.body_parts.map((part) => (
+                                  <Badge key={part} variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200 border-none px-3 py-1 rounded-full font-bold">
+                                    {part}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {appointment.attachments && appointment.attachments.length > 0 && (
+                      <div className="space-y-6">
+                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
+                            <DownloadCloud className="h-5 w-5 text-primary" />
+                            Archivos Adjuntos ({appointment.attachments.length})
+                        </h4>
+                        <div className="grid grid-cols-1 gap-4">
+                          {appointment.attachments.map((file) => (
+                            <a 
+                                key={file.id} 
+                                href={file.file_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-primary/20 transition-all group"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                  <FileText className="h-5 w-5" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-slate-800 line-clamp-1">{file.file_name}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase">{file.file_type ? file.file_type.split('/')[1] : 'FILE'}</p>
+                                </div>
+                              </div>
+                              <Download className="h-4 w-4 text-slate-300 group-hover:text-primary" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </PremiumCard>
             )}
           </div>
 

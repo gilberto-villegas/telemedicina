@@ -65,7 +65,7 @@ export default function PatientPaymentsPage() {
   const loadPayments = async () => {
     try {
       const response = await api.get('/payments/invoices');
-      setPayments(Array.isArray(response.data) ? response.data : []);
+      setPayments(Array.isArray(response.data) ? response.data : (response.data?.data || []));
     } catch { setPayments([]); } finally { setLoading(false); }
   };
 

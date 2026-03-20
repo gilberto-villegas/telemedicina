@@ -53,6 +53,7 @@ class AppointmentController extends Controller
                         'status' => $apt->status ? $apt->status->label : 'Desconocido',
                         'status_name' => $apt->status ? $apt->status->name : null,
                         'reason' => $apt->reason ?? '',
+                        'type' => $apt->type,
                         'duration_minutes' => ($apt->start_time && $apt->end_time) ? $apt->start_time->diffInMinutes($apt->end_time) : 0,
                         'price_usd' => $apt->price_usd ?? 0,
                         'patient' => $apt->patient ? [
@@ -90,7 +91,9 @@ class AppointmentController extends Controller
             'doctor.specialty_ref',
             'medicalRecord.attachments',
             'prescription',
-            'payment'
+            'payment',
+            'medicalResponses.question',
+            'attachments'
         ])->findOrFail($id);
 
         // Verificar permisos
@@ -108,7 +111,7 @@ class AppointmentController extends Controller
         }
 
         // Formatear respuesta para incluir appointment_date
-        $appointment->load(['status', 'patient', 'payment.status']);
+        $appointment->load(['status', 'patient', 'payment.status', 'medicalResponses', 'attachments']);
         $appointmentData = $appointment->toArray();
         $appointmentData['status_label'] = $appointment->status ? $appointment->status->label : 'Desconocido';
         
@@ -137,6 +140,12 @@ class AppointmentController extends Controller
                 $appointmentData['prescription'] = $prescription->toArray();
             }
         }
+
+        // Contador de mensajes no leídos para este appointment
+        $appointmentData['unread_messages_count'] = \App\Models\Message::where('appointment_id', $appointment->id)
+            ->where('receiver_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
 
         return response()->json($appointmentData);
     }
@@ -253,24 +262,23 @@ class AppointmentController extends Controller
             return response()->json(['message' => 'Acceso denegado'], 403);
         }
 
-        // Generar room ID si no existe y es Videoconsulta
+        // Generar room ID si es Videoconsulta y no existe
         if ($appointment->type === Appointment::TYPE_VIDEO && !$appointment->video_room_id) {
-            $appointment->update([
-                'video_room_id' => Str::random(32),
-                'status_id' => Status::where('name', 'in_progress')->first()->id
-            ]);
-        } elseif ($appointment->type !== Appointment::TYPE_VIDEO) {
-            // Para otros tipos, solo marcar como en progreso
-            if ($appointment->status->name === 'scheduled') {
-                $appointment->update([
-                    'status_id' => Status::where('name', 'in_progress')->first()->id
-                ]);
-            }
+            $appointment->video_room_id = Str::random(32);
+        }
+
+        // Marcar como en progreso si está programada
+        if ($appointment->status->name === 'scheduled') {
+            $appointment->status_id = Status::where('name', 'in_progress')->first()->id;
+        }
+
+        if ($appointment->isDirty()) {
+            $appointment->save();
         }
 
         return response()->json([
             'room_id' => $appointment->video_room_id,
-            'appointment' => $appointment
+            'appointment' => $appointment->load('status')
         ]);
     }
 
@@ -292,10 +300,10 @@ class AppointmentController extends Controller
             return response()->json(['message' => 'Acceso denegado'], 403);
         }
 
-        // Verificar que la cita esté en progreso
-        if ($appointment->status->name !== 'in_progress') {
+        // Verificar que la cita esté en progreso o programada
+        if (!in_array($appointment->status->name, ['in_progress', 'scheduled'])) {
             return response()->json([
-                'message' => 'Solo se pueden finalizar citas en progreso'
+                'message' => 'Solo se pueden finalizar citas en progreso o programadas'
             ], 400);
         }
 

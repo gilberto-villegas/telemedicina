@@ -89,6 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Pagos
     Route::prefix('payments')->group(function () {
         Route::post('/intent', [PaymentController::class, 'createIntent']);
+        Route::get('/{id}/instructions', [PaymentController::class, 'getInstructions']);
         Route::post('/{id}/confirm', [PaymentController::class, 'confirm']);
         Route::get('/invoices', [PaymentController::class, 'invoices']);
         
@@ -136,6 +137,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('notification-preferences')->group(function () {
         Route::get('/', [NotificationPreferencesController::class, 'show']);
         Route::put('/', [NotificationPreferencesController::class, 'update']);
+    });
+
+    // Cuestionarios Médicos
+    Route::prefix('medical-questions')->group(function () {
+        Route::get('/', [App\Http\Controllers\MedicalQuestionController::class, 'index']);
+        Route::post('/sync', [App\Http\Controllers\MedicalQuestionController::class, 'updateQuestions']);
+    });
+    Route::prefix('appointments/{id}/responses')->group(function () {
+        Route::get('/', [App\Http\Controllers\MedicalQuestionController::class, 'getResponses']);
+        Route::post('/', [App\Http\Controllers\MedicalQuestionController::class, 'storeResponses']);
     });
 });
 

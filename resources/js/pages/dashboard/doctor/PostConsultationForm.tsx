@@ -116,8 +116,16 @@ export default function PostConsultationFormPage() {
       await api.post('/medical-records', recordPayload);
       setSavedRecord(true);
 
-      // 2. Crear receta si hay medicamentos válidos
-      const validMeds = medications.filter(m => m.name && m.dosage && m.frequency && m.duration);
+      // 2. Validar receta
+      const activeMeds = medications.filter(m => m.name || m.dosage || m.frequency || m.duration);
+      const validMeds = activeMeds.filter(m => m.name && m.dosage && m.frequency && m.duration);
+      
+      if (activeMeds.length > 0 && validMeds.length !== activeMeds.length) {
+        setError('Por favor completa todos los campos (Nombre, Dosis, Frecuencia, Duración) de los medicamentos que has agregado.');
+        setSaving(false);
+        return;
+      }
+
       if (validMeds.length > 0) {
         await api.post('/prescriptions', {
           appointment_id: id,

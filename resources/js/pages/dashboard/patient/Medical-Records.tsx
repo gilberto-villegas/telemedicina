@@ -120,7 +120,7 @@ export default function MedicalRecordsPage() {
     if (!currentUser || currentUser.type !== 'patient') { navigate(`/dashboard/${currentUser?.type || 'patient'}`); return; }
     setUser(currentUser);
     api.get('/patients/me/medical-records')
-      .then(r => setRecords(Array.isArray(r.data) ? r.data : []))
+      .then(r => setRecords(Array.isArray(r.data) ? r.data : (r.data?.data || [])))
       .catch(() => setRecords([]))
       .finally(() => setLoading(false));
   }, [navigate]);

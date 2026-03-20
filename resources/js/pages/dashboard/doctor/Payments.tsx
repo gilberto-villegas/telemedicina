@@ -32,11 +32,12 @@ function StatusPill({ name, label }: { name: string; label: string }) {
     payment_completed:  'bg-green-50 border-green-200 text-green-700',
     payment_processing: 'bg-blue-50 border-blue-200 text-blue-700',
     payment_failed:     'bg-red-50 border-red-200 text-red-700',
+    payment_pending:    'bg-gray-100 border-gray-200 text-gray-500',
   };
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${styles[name] || 'bg-gray-50 border-gray-200 text-gray-700'}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${name === 'payment_completed' ? 'bg-green-500' : name === 'payment_processing' ? 'bg-blue-500' : 'bg-red-500'}`} />
-      {label}
+      <span className={`w-1.5 h-1.5 rounded-full ${name === 'payment_completed' ? 'bg-green-500' : name === 'payment_processing' ? 'bg-blue-500' : name === 'payment_failed' ? 'bg-red-500' : 'bg-gray-400'}`} />
+      {name === 'payment_pending' ? 'Sin Confirmar' : label}
     </span>
   );
 }

@@ -190,7 +190,7 @@ export default function DoctorAppointmentsPage() {
                       <div className="bg-slate-900 flex flex-col items-center justify-center px-6 py-6 sm:w-[100px] text-white transition-colors group-hover:bg-blue-600">
                         <Clock className="h-4 w-4 mb-2 opacity-50" />
                         <span className="text-xl font-black">{format(new Date(apt.appointment_date), 'HH:mm')}</span>
-                        <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter mt-1">{apt.duration_minutes} min</span>
+                        <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter mt-1">{Math.round(Number(apt.duration_minutes) || 0)} min</span>
                       </div>
 
                       {/* Content */}
@@ -242,12 +242,8 @@ export default function DoctorAppointmentsPage() {
                                   </button>
                                 </Link>
                               ) : (
-                                  <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
-                                      <button className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/10 active:scale-95 flex items-center gap-2">
-                                          <UserIcon className="h-4 w-4" />
-                                          Atender en Consultorio
-                                      </button>
-                                  </Link>
+                                  <div className="flex gap-2">
+                                  </div>
                               )}
                               <div className="flex gap-2">
                                 <Link to={`/dashboard/doctor/appointments/${apt.id}`}>

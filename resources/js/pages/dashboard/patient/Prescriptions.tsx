@@ -37,7 +37,7 @@ export default function PrescriptionsPage() {
     if (!currentUser || currentUser.type !== 'patient') { navigate(`/dashboard/${currentUser?.type || 'patient'}`); return; }
     setUser(currentUser);
     api.get('/prescriptions')
-      .then(r => setPrescriptions(Array.isArray(r.data) ? r.data : []))
+      .then(r => setPrescriptions(Array.isArray(r.data) ? r.data : (r.data?.data || [])))
       .catch(() => setPrescriptions([]))
       .finally(() => setLoading(false));
   }, [navigate]);

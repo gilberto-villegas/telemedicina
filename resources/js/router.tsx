@@ -25,6 +25,7 @@ import PatientSettings from './pages/dashboard/patient/Settings';
 import PatientChat from './pages/dashboard/patient/Chat';
 import PatientBooking from './pages/dashboard/patient/doctors/Booking';
 import PatientAppointmentDetail from './pages/dashboard/patient/AppointmentDetail';
+import PatientQuestionnaire from './pages/dashboard/patient/appointments/Questionnaire';
 import VideoCall from './pages/dashboard/VideoCall';
 import Notifications from './pages/dashboard/Notifications';
 
@@ -59,6 +60,7 @@ export default function AppRoutes() {
                     <Route index element={<DashboardType />} />
                     <Route path="appointments" element={<PatientAppointments />} />
                     <Route path="appointments/:id" element={<PatientAppointmentDetail />} />
+                    <Route path="appointments/:id/questionnaire" element={<PatientQuestionnaire />} />
                     <Route path="doctors" element={<PatientDoctors />} />
                     <Route path="doctors/:id/book" element={<PatientBooking />} />
                     <Route path="medical-records" element={<PatientMedicalRecords />} />

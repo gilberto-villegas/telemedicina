@@ -128,6 +128,11 @@ class User extends Authenticatable
         return $this->hasOne(UserNotificationPreferences::class);
     }
 
+    public function medicalQuestions()
+    {
+        return $this->hasMany(MedicalQuestion::class, 'doctor_id');
+    }
+
     // Scopes
     public function scopeDoctors($query)
     {
@@ -185,6 +190,13 @@ class User extends Authenticatable
     public function unreadNotificationsCount(): int
     {
         return $this->unreadNotifications()->count();
+    }
+
+    public function unreadMessagesCount(): int
+    {
+        return \App\Models\Message::where('receiver_id', $this->id)
+            ->whereNull('read_at')
+            ->count();
     }
 
     public function canReceiveWhatsApp(): bool

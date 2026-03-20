@@ -7,10 +7,13 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   ArrowLeft, Calendar, User as UserIcon, Video,
-  FileText, CreditCard, Pill, AlertCircle, CheckCircle2,
+  FileText, CreditCard, Pill, AlertCircle, CheckCircle2, CheckCircle,
   XCircle, Phone, Stethoscope, Activity, Heart, Thermometer,
-  Shield, ChevronRight, History, Printer, MessageSquare, DollarSign
+  Shield, ChevronRight, History, Printer, MessageSquare, DollarSign,
+  FileSearch, DownloadCloud, Download
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { BodyMap } from '@/components/medical/BodyMap';
 
 interface AppointmentData {
   id: string;
@@ -69,6 +72,9 @@ interface AppointmentData {
     status: string;
     reference: string;
   } | null;
+  medical_responses?: Array<{ id: string; question: { question_text: string }; response_text: string; body_parts: string[] | null }>;
+  attachments?: Array<{ id: string; file_url: string; file_name: string; file_type: string }>;
+  unread_messages_count?: number;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: any }> = {
@@ -330,6 +336,8 @@ export default function DoctorAppointmentDetailPage() {
       setAppointment(response.data);
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Error al cargar la cita');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -343,11 +351,27 @@ export default function DoctorAppointmentDetailPage() {
   };
 
   const startAppointment = async () => {
+    if (!appointment) return;
     try {
       await api.post(`/appointments/${id}/join`);
-      navigate(`/dashboard/doctor/appointments/${id}/video`);
+      if (appointment.type === 'videoconsulta') {
+        navigate(`/dashboard/doctor/appointments/${id}/video`);
+      } else {
+        navigate(`/dashboard/doctor/chat?patient=${appointment.patient?.id}&appointment=${id}`);
+      }
     } catch {
       alert('Error al iniciar la consulta');
+    }
+  };
+
+  const endTeleconsulta = async () => {
+    if (!appointment) return;
+    if (!confirm('¿Estás seguro de finalizar esta teleconsulta?')) return;
+    try {
+      await api.post(`/appointments/${id}/finalize`);
+      await loadAppointment();
+    } catch {
+      alert('Error al finalizar la teleconsulta');
     }
   };
 
@@ -443,8 +467,11 @@ export default function DoctorAppointmentDetailPage() {
                     onClick={startAppointment}
                     className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold transition-all hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-200 active:scale-95 group"
                   >
-                    <Video className="h-5 w-5 transition-transform group-hover:scale-110" />
-                    <span>Iniciar Consulta</span>
+                    {appointment.type === 'videoconsulta' ? 
+                      <Video className="h-5 w-5 transition-transform group-hover:scale-110" /> : 
+                      <MessageSquare className="h-5 w-5 transition-transform group-hover:scale-110" />
+                    }
+                    <span>{appointment.type === 'videoconsulta' ? 'Iniciar Videoconsulta' : 'Iniciar Teleconsulta'}</span>
                   </button>
                   <button
                     onClick={cancelAppointment}
@@ -453,15 +480,40 @@ export default function DoctorAppointmentDetailPage() {
                     <XCircle className="h-5 w-5" />
                     <span>Cancelar</span>
                   </button>
+                  <button
+                    onClick={endTeleconsulta}
+                    className="flex items-center gap-3 px-6 py-4 border-2 border-slate-900 text-slate-900 rounded-2xl font-bold transition-all hover:bg-slate-900 hover:text-white hover:shadow-xl active:scale-95"
+                  >
+                    <CheckCircle className="h-5 w-5" />
+                    <span>Finalizar Consulta</span>
+                  </button>
                 </>
               )}
               {statusName === 'in_progress' && (
-                <Link to={`/dashboard/doctor/appointments/${id}/video`} className="w-full sm:w-auto">
-                  <button className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200 active:scale-95">
-                    <Video className="h-5 w-5" />
-                    <span>Continuar Consulta</span>
+                <div className="flex flex-wrap gap-3">
+                  {appointment.type === 'videoconsulta' ? (
+                    <Link to={`/dashboard/doctor/appointments/${id}/video`} className="w-full sm:w-auto">
+                      <button className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200 active:scale-95">
+                        <Video className="h-5 w-5" />
+                        <span>Continuar Videoconsulta</span>
+                      </button>
+                    </Link>
+                  ) : (
+                    <Link to={`/dashboard/doctor/chat?patient=${appointment.patient?.id}&appointment=${id}`} className="w-full sm:w-auto">
+                      <button className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200 active:scale-95">
+                        <MessageSquare className="h-5 w-5" />
+                        <span>Ir al Chat</span>
+                      </button>
+                    </Link>
+                  )}
+                  <button
+                    onClick={endTeleconsulta}
+                    className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 border-2 border-slate-900 text-slate-900 rounded-2xl font-bold transition-all hover:bg-slate-900 hover:text-white hover:shadow-xl active:scale-95"
+                  >
+                    <CheckCircle className="h-5 w-5" />
+                    <span>Finalizar Consulta</span>
                   </button>
-                </Link>
+                </div>
               )}
               {statusName === 'completed' && !appointment.medical_record && (
                 <Link to={`/dashboard/doctor/appointments/${id}/post-consultation`} className="w-full sm:w-auto">
@@ -492,8 +544,13 @@ export default function DoctorAppointmentDetailPage() {
             <PremiumCard title="Detalles del Paciente" icon={UserIcon} action={
               appointment.patient && (
                 <Link to={`/dashboard/doctor/chat?patient=${appointment.patient.id}&appointment=${appointment.id}`}>
-                  <button className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                  <button className="relative p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm group/chat">
                     <MessageSquare className="h-5 w-5" />
+                    {Number(appointment.unread_messages_count) > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-lg border-2 border-white animate-bounce">
+                        {appointment.unread_messages_count}
+                      </span>
+                    )}
                   </button>
                 </Link>
               )
@@ -528,6 +585,66 @@ export default function DoctorAppointmentDetailPage() {
                 <p className="text-slate-400 italic">No hay información del paciente disponible.</p>
               )}
             </PremiumCard>
+
+            {/* ========== MEDICAL QUESTIONNAIRE RESULTS ========== */}
+            {appointment.medical_responses && appointment.medical_responses.length > 0 && (
+              <PremiumCard title="Triage / Información Pre-Consulta" icon={FileSearch}>
+                <div className="space-y-10">
+                  <div className="grid md:grid-cols-2 gap-10">
+                    <div className="space-y-8">
+                      {appointment.medical_responses.map((resp) => (
+                        <div key={resp.id} className="space-y-4 group">
+                          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest transition-colors group-hover:text-blue-500">
+                            {resp.question?.question_text || 'Pregunta Médica'}
+                          </h4>
+                          <div className="flex gap-10">
+                            <div className="flex-1 p-5 rounded-2xl bg-slate-50 border border-slate-100/50 text-slate-700 font-medium leading-relaxed shadow-sm">
+                              {resp.response_text || 'Sin respuesta'}
+                            </div>
+                            {Array.isArray(resp.body_parts) && resp.body_parts.length > 0 && (
+                               <div className="w-64 flex-shrink-0">
+                                  <BodyMap selectedParts={resp.body_parts} readOnly />
+                               </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {appointment.attachments && appointment.attachments.length > 0 && (
+                      <div className="space-y-6">
+                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
+                            <DownloadCloud className="h-5 w-5 text-blue-500" />
+                            Archivos del Paciente ({appointment.attachments.length})
+                        </h4>
+                        <div className="grid grid-cols-1 gap-4">
+                          {appointment.attachments.map((file) => (
+                            <a 
+                                key={file.id} 
+                                href={file.file_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                  <FileText className="h-5 w-5" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-slate-800 line-clamp-1">{file.file_name}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase">{file.file_type ? file.file_type.split('/')[1] : 'FILE'}</p>
+                                </div>
+                              </div>
+                              <Download className="h-4 w-4 text-slate-300 group-hover:text-blue-500" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </PremiumCard>
+            )}
 
             {/* Medical Record */}
             {appointment.medical_record ? (
@@ -613,7 +730,7 @@ export default function DoctorAppointmentDetailPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-white/50 rounded-2xl border border-white">
                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Método</p>
-                           <p className="text-sm font-bold text-slate-700 capitalize">{appointment.payment.method.replace('_', ' ')}</p>
+                           <p className="text-sm font-bold text-slate-700 capitalize">{(appointment.payment.method || '').replace('_', ' ') || 'N/A'}</p>
                         </div>
                         <div className="p-4 bg-white/50 rounded-2xl border border-white">
                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Referencia</p>

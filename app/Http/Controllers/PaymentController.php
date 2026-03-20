@@ -64,6 +64,20 @@ class PaymentController extends Controller
         ], 201);
     }
 
+    public function getInstructions(Request $request, string $id): JsonResponse
+    {
+        $payment = Payment::with('appointment.doctor')->findOrFail($id);
+        
+        // Verificar que el usuario es el paciente
+        if ($payment->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Acceso denegado'], 403);
+        }
+
+        return response()->json([
+            'instructions' => $this->getPaymentInstructions($payment->method, $payment->appointment->doctor)
+        ]);
+    }
+
     public function confirm(Request $request, string $id): JsonResponse
     {
         $payment = Payment::findOrFail($id);
@@ -76,10 +90,10 @@ class PaymentController extends Controller
 
         $validated = $request->validate([
             'reference_number' => 'required|string|max:100',
-            'payment_date' => 'sometimes|date',
-            'payment_phone' => 'sometimes|string|max:20',
-            'transaction_id' => 'sometimes|string|max:100',
-            'proof_url' => 'sometimes|string|max:500',
+            'payment_date' => 'sometimes|nullable|date',
+            'payment_phone' => 'sometimes|nullable|string|max:20',
+            'transaction_id' => 'sometimes|nullable|string|max:100',
+            'proof_url' => 'sometimes|nullable|string|max:500',
         ]);
 
         $payment->update([

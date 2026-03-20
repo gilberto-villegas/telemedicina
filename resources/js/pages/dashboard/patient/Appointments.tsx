@@ -83,7 +83,7 @@ function AppointmentCard({ apt, onCancel }: {
                 </p>
               )}
               <div className="flex items-center gap-4 mt-2 ml-10 text-xs text-gray-400">
-                <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{apt.duration_minutes} min</span>
+                <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.round(Number(apt.duration_minutes) || 0)} min</span>
               </div>
               {apt.reason && (
                 <p className="text-sm text-gray-600 mt-2 ml-10">
@@ -92,12 +92,26 @@ function AppointmentCard({ apt, onCancel }: {
               )}
             </div>
 
-            <div className="flex flex-col gap-2 flex-shrink-0">
+            <div className="flex flex-col gap-2 flex-shrink-0 w-28">
+              {apt.status_name === 'pending_payment' && (
+                <Link to={`/dashboard/patient/appointments/${apt.id}`}>
+                  <button className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-400 to-amber-500 text-white text-xs font-bold hover:shadow-md transition-all w-full">
+                    Pagar Ahora
+                  </button>
+                </Link>
+              )}
+              {apt.status_name === 'pending_verification' && (
+                <Link to={`/dashboard/patient/appointments/${apt.id}`}>
+                  <button className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl border border-orange-200 bg-orange-50 text-orange-700 text-xs font-bold hover:bg-orange-100 transition-all w-full">
+                    Ver Estado
+                  </button>
+                </Link>
+              )}
               {apt.status_name === 'scheduled' && (
                 <>
                   {apt.type === 'videoconsulta' && (
                     <Link to={videoBase}>
-                      <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition-all w-full">
+                      <button className="flex items-center justify-start gap-2 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition-all w-full">
                         <Video className="h-3.5 w-3.5" />
                         Unirse
                       </button>
@@ -105,15 +119,20 @@ function AppointmentCard({ apt, onCancel }: {
                   )}
                   {apt.type === 'teleconsulta' && (
                     <Link to={`/dashboard/patient/chat?doctor=${apt.doctor?.id}&appointment=${apt.id}`}>
-                      <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition-all w-full">
+                      <button className="flex items-center justify-start gap-2 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition-all w-full">
                         <MessageSquare className="h-3.5 w-3.5" />
                         Chat
                       </button>
                     </Link>
                   )}
+                  <Link to={`/dashboard/patient/appointments/${apt.id}`}>
+                    <button className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-all w-full">
+                      Detalles
+                    </button>
+                  </Link>
                   <button
                     onClick={() => onCancel(apt.id)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold hover:bg-red-100 transition-all"
+                    className="flex items-center justify-start gap-2 px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold hover:bg-red-100 transition-all w-full"
                   >
                     <XCircle className="h-3.5 w-3.5" />
                     Cancelar
@@ -121,27 +140,36 @@ function AppointmentCard({ apt, onCancel }: {
                 </>
               )}
               {apt.status_name === 'in_progress' && (
-                <Link to={videoBase}>
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-all">
-                    <Video className="h-3.5 w-3.5" />
-                    Entrar
-                  </button>
-                </Link>
+                <>
+                  <Link to={videoBase}>
+                    <button className="flex items-center justify-start gap-2 px-3 py-1.5 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-all w-full">
+                      <Video className="h-3.5 w-3.5" />
+                      Entrar
+                    </button>
+                  </Link>
+                  <Link to={`/dashboard/patient/appointments/${apt.id}`}>
+                    <button className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-all w-full">
+                      Detalles
+                    </button>
+                  </Link>
+                </>
               )}
               {apt.status_name === 'completed' && (
                 <Link to={`/dashboard/patient/appointments/${apt.id}`}>
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition-all w-full">
+                  <button className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition-all w-full">
                     <CheckCircle className="h-3.5 w-3.5 text-green-500" />
                     Ver
                   </button>
                 </Link>
               )}
-              <Link to={`/dashboard/patient/chat?doctor=${apt.doctor?.id}&appointment=${apt.id}`} className="w-full">
-                <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-all w-full">
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  Chat
-                </button>
-              </Link>
+              {apt.status_name !== 'pending_payment' && apt.status_name !== 'pending_verification' && (
+                <Link to={`/dashboard/patient/chat?doctor=${apt.doctor?.id}&appointment=${apt.id}`} className="w-full">
+                  <button className="flex items-center justify-start gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-all w-full">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Chat
+                  </button>
+                </Link>
+              )}
             </div>
           </div>
         </div>

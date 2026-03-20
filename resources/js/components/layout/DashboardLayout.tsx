@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { AIAssistant } from '@/components/dashboard/AIAssistant';
+import { useNotificationsContext } from '@/contexts/NotificationsContext';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -39,6 +40,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const pathname = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { unreadCount } = useNotificationsContext();
 
   const handleLogout = () => {
     authService.logout();
@@ -148,7 +150,12 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                   }`}
               >
                 <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
+                <span className="flex-1">{item.label}</span>
+                {item.label === 'Mensajes' && unreadCount > 0 && (
+                  <span className="flex h-5 min-w-[20px] items-center justify-center px-1 rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm group-hover:bg-red-600 transition-colors">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}

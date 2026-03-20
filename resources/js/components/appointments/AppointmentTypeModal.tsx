@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 interface AppointmentTypeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (type: 'videoconsulta' | 'teleconsulta' | 'presencial') => void;
+  onSelect: (type: 'videoconsulta' | 'teleconsulta') => void;
   doctorName: string;
 }
 

@@ -77,6 +77,21 @@ class Appointment extends Model
         return $this->hasOne(Payment::class, 'appointment_id');
     }
 
+    public function medicalResponses()
+    {
+        return $this->hasMany(MedicalResponse::class);
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(AppointmentAttachment::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
+
     // Scopes
     public function scopeUpcoming($query)
     {

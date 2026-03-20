@@ -46,6 +46,7 @@ export default function BookingPage() {
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [paymentInstructions, setPaymentInstructions] = useState<any>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [appointmentId, setAppointmentId] = useState<string | null>(null);
   const [paymentData, setPaymentData] = useState({
     reference: '',
     phone: '',
@@ -112,6 +113,7 @@ export default function BookingPage() {
       });
 
       const appointmentId = appoResponse.data.appointment.id;
+      setAppointmentId(appointmentId);
 
       // 2. Create Payment Intent
       const paymentResponse = await api.post('/payments/intent', {
@@ -146,6 +148,14 @@ export default function BookingPage() {
       alert('Error al confirmar el pago.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleGoToQuestionnaire = async () => {
+    if (appointmentId) {
+      navigate(`/dashboard/patient/appointments/${appointmentId}/questionnaire`);
+    } else {
+      navigate('/dashboard/patient/appointments');
     }
   };
 
@@ -193,8 +203,7 @@ export default function BookingPage() {
                     type === 'teleconsulta' ? "bg-emerald-100 text-emerald-600" :
                     "bg-indigo-100 text-indigo-600"
                   )}>
-                    {type === 'videoconsulta' ? 'Videoconsulta' :
-                     type === 'teleconsulta' ? 'Teleconsulta' : 'Presencial'}
+                    {type === 'videoconsulta' ? 'Videoconsulta' : 'Teleconsulta'}
                   </span>
                 </div>
                 <div className="pt-4 border-t border-primary/10">
@@ -426,23 +435,28 @@ export default function BookingPage() {
                     <p>Estamos validando tu pago con el doctor e inmediatamente te notificaremos.</p>
                   </div>
 
-                  <div className="space-y-2 text-left">
-                    <label className="text-sm font-bold text-muted-foreground uppercase">Motivo de la consulta (Opcional)</label>
-                    <textarea
-                      placeholder="Indica brevemente si tienes algún síntoma especial..."
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      className="w-full min-h-[100px] p-4 rounded-xl border-2 border-muted focus:border-primary focus:ring-0 transition-all resize-none"
-                    />
-                  </div>
+                  <div className="space-y-4 pt-4 border-t border-muted/50">
+                    <p className="text-sm font-bold text-slate-700 bg-amber-50 p-4 rounded-xl border border-amber-100 italic">
+                      Para ayudar a tu doctor a preparar la consulta, es muy importante que completes un breve cuestionario sobre tus síntomas actuales.
+                    </p>
+                    
+                    <Button 
+                      className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-blue-500/20 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
+                      disabled={submitting}
+                      onClick={handleGoToQuestionnaire}
+                    >
+                      Completar Cuestionario de Triage
+                    </Button>
 
-                  <Button 
-                    className="w-full h-14 rounded-xl text-lg font-bold shadow-xl shadow-primary/20 bg-green-600 hover:bg-green-700"
-                    disabled={submitting}
-                    onClick={handleFinalBooking}
-                  >
-                    Ir a mis Citas
-                  </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full h-12 rounded-xl font-bold text-slate-500 hover:text-slate-800"
+                      disabled={submitting}
+                      onClick={handleFinalBooking}
+                    >
+                      Hacerlo más tarde (Ir a mis citas)
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}

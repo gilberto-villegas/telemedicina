@@ -38,7 +38,9 @@ export const NotificationItem = ({ notification, onClose }: NotificationItemProp
     const data = notification.data || {};
     let url = '/dashboard/notifications';
 
-    if (data.appointment_id) {
+    if (data.url) {
+      url = data.url;
+    } else if (data.appointment_id) {
       url = `/dashboard/patient/appointments/${data.appointment_id}`;
     } else if (data.payment_id) {
       url = '/dashboard/patient/payments';
@@ -50,7 +52,11 @@ export const NotificationItem = ({ notification, onClose }: NotificationItemProp
       url = `/dashboard/notifications/${notification.id}`;
     }
 
-    router.push(url);
+    if (url.startsWith('/')) {
+      router(url);
+    } else {
+      window.location.href = url;
+    }
     onClose();
   };
 
