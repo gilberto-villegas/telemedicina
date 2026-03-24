@@ -50,6 +50,7 @@ class User extends Authenticatable
         'zelle_email',
         'zelle_holder',
         'digital_signature',
+        'is_blocked',
     ];
 
     protected $hidden = [
@@ -79,6 +80,7 @@ class User extends Authenticatable
             'birth_date' => 'date',
             'consultation_price_usd' => 'decimal:2',
             'rating' => 'decimal:2',
+            'is_blocked' => 'boolean',
         ];
     }
 
@@ -163,6 +165,11 @@ class User extends Authenticatable
     public function isClinicAdmin(): bool
     {
         return $this->type === 'clinic_admin';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->type === 'admin';
     }
 
     public function isPharmacy(): bool

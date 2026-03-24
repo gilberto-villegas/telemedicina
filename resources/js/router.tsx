@@ -26,6 +26,14 @@ import PatientChat from './pages/dashboard/patient/Chat';
 import PatientBooking from './pages/dashboard/patient/doctors/Booking';
 import PatientAppointmentDetail from './pages/dashboard/patient/AppointmentDetail';
 import PatientQuestionnaire from './pages/dashboard/patient/appointments/Questionnaire';
+
+import AdminDashboard from './pages/dashboard/admin/AdminDashboard';
+import AdminDoctors from './pages/dashboard/admin/Doctors';
+import AdminPatients from './pages/dashboard/admin/Patients';
+import AdminSpecialties from './pages/dashboard/admin/Specialties';
+import AdminAdmins from './pages/dashboard/admin/Admins';
+import AdminSettings from './pages/dashboard/admin/AdminSettings';
+
 import VideoCall from './pages/dashboard/VideoCall';
 import Notifications from './pages/dashboard/Notifications';
 
@@ -69,6 +77,16 @@ export default function AppRoutes() {
                     <Route path="settings" element={<PatientSettings />} />
                     <Route path="appointments/:id/video" element={<VideoCall />} />
                     <Route path="chat" element={<PatientChat />} />
+                </Route>
+
+                {/* Admin Routes */}
+                <Route path="admin">
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="doctors" element={<AdminDoctors />} />
+                    <Route path="patients" element={<AdminPatients />} />
+                    <Route path="specialties" element={<AdminSpecialties />} />
+                    <Route path="admins" element={<AdminAdmins />} />
+                    <Route path="settings" element={<AdminSettings />} />
                 </Route>
 
                 <Route path="notifications" element={<Notifications />} />

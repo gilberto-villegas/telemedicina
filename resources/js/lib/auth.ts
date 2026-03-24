@@ -5,7 +5,7 @@ import { api } from './api';
 export interface User {
   id: string;
   uuid: string;
-  type: 'patient' | 'doctor' | 'clinic_admin' | 'pharmacy';
+  type: 'patient' | 'doctor' | 'clinic_admin' | 'pharmacy' | 'admin';
   email: string;
   phone: string;
   document_id: string;
@@ -18,6 +18,7 @@ export interface User {
    mpps_number?: string;
   is_verified: boolean;
   document_verified: boolean;
+  is_blocked?: boolean;
   consultation_price_usd?: number;
   bank_name?: string;
   bank_account_number?: string;

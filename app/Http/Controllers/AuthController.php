@@ -85,6 +85,12 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if ($user->is_blocked) {
+            return response()->json([
+                'message' => 'Tu cuenta ha sido bloqueada. Por favor, contacta al soporte.'
+            ], 403);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

@@ -46,6 +46,11 @@ export default function DashboardType() {
             return;
         }
 
+        if (currentUser.type === 'admin') {
+            navigate('/dashboard/admin');
+            return;
+        }
+
         setUser(currentUser);
         loadStats(currentUser.type);
     }, [type, navigate]);

@@ -148,5 +148,32 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [App\Http\Controllers\MedicalQuestionController::class, 'getResponses']);
         Route::post('/', [App\Http\Controllers\MedicalQuestionController::class, 'storeResponses']);
     });
+
+    // Administración
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
+        
+        // Médicos
+        Route::get('/doctors', [App\Http\Controllers\AdminController::class, 'indexDoctors']);
+        Route::post('/doctors/{doctor}/verify', [App\Http\Controllers\AdminController::class, 'verifyDoctor']);
+        
+        // Pacientes
+        Route::get('/patients', [App\Http\Controllers\AdminController::class, 'indexPatients']);
+        
+        // Usuarios (Bloqueo/Eliminación)
+        Route::post('/users/{user}/block', [App\Http\Controllers\AdminController::class, 'blockUser']);
+        Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'deleteUser']);
+        
+        // Especialidades
+        Route::get('/specialties', [App\Http\Controllers\AdminController::class, 'indexSpecialties']);
+        Route::post('/specialties', [App\Http\Controllers\AdminController::class, 'storeSpecialty']);
+        Route::put('/specialties/{specialty}', [App\Http\Controllers\AdminController::class, 'updateSpecialty']);
+        Route::delete('/specialties/{specialty}', [App\Http\Controllers\AdminController::class, 'deleteSpecialty']);
+        
+        // Administradores
+        Route::get('/admins', [App\Http\Controllers\AdminController::class, 'indexAdmins']);
+        Route::post('/admins', [App\Http\Controllers\AdminController::class, 'storeAdmin']);
+        Route::put('/admins/{admin}', [App\Http\Controllers\AdminController::class, 'updateAdmin']);
+    });
 });
 

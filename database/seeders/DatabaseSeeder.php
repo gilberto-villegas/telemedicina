@@ -8,7 +8,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // TODO: Agregar seeders para datos de prueba
+        $this->call([
+            AdminSeeder::class,
+        ]);
     }
 }
 
