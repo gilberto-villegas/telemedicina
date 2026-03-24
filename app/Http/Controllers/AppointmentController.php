@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\User;
 use App\Models\Status;
+use App\Services\BcvService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
@@ -13,6 +14,13 @@ use Carbon\Carbon;
 
 class AppointmentController extends Controller
 {
+    protected $bcvService;
+
+    public function __construct(BcvService $bcvService)
+    {
+        $this->bcvService = $bcvService;
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
@@ -204,8 +212,8 @@ class AppointmentController extends Controller
             ], 409);
         }
 
-        // Obtener tasa de cambio (TODO: Integrar API de cambio)
-        $exchangeRate = 36.5; // Placeholder
+        // Obtener tasa de cambio oficial del BCV
+        $exchangeRate = $this->bcvService->getExchangeRate();
 
         $appointment = Appointment::create([
             'patient_id' => $user->id,

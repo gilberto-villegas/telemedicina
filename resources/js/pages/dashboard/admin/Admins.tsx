@@ -261,9 +261,9 @@ export default function AdminAdmins() {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {admins.map(adm => (
-                            <Card key={adm.id} className={`rounded-[2rem] border-none shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-slate-300/50 transition-all group overflow-hidden bg-white ${adm.is_blocked ? 'opacity-60 grayscale' : ''}`}>
+                            <Card key={adm.id} className={`rounded-[2.5rem] border border-white/40 shadow-2xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all group overflow-hidden bg-white/70 backdrop-blur-xl ${adm.is_blocked ? 'opacity-60 grayscale' : ''}`}>
                                 <div className="h-2 bg-slate-900" />
                                 <CardContent className="p-8">
                                     <div className="flex items-center justify-between mb-8">

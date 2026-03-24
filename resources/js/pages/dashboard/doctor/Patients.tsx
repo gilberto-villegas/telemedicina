@@ -73,16 +73,22 @@ export default function PatientsPage() {
 
   return (
     <DashboardLayout user={user}>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <Link to="/dashboard/doctor" className="group inline-flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors mb-4">
-              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              <span className="text-sm font-bold uppercase tracking-widest">Panel Principal</span>
+      <div className="max-w-5xl mx-auto space-y-10 pb-20">
+        {/* Header Section (Synced with other views) */}
+        <div className="relative overflow-hidden rounded-[3rem] p-10 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-2xl shadow-blue-500/20 mb-10">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -mr-40 -mt-40 blur-3xl animate-pulse" />
+          
+          <div className="relative z-10">
+            <Link to="/dashboard/doctor" className="group inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all mb-6">
+              <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-1" />
+              Regresar al Panel
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Mis Pacientes</h1>
-            <p className="text-gray-500 mt-0.5">{patients.length} pacientes registrados</p>
+            <h1 className="text-4xl md:text-5xl font-black text-white leading-tight uppercase tracking-tight mb-2">
+              Mis <span className="text-blue-200">Pacientes</span>
+            </h1>
+            <p className="text-blue-100 text-lg font-medium uppercase tracking-tight">
+              {patients.length} pacientes registrados en tu historial médico
+            </p>
           </div>
         </div>
 
@@ -93,7 +99,7 @@ export default function PatientsPage() {
             { label: 'Resultado Búsqueda', value: filteredPatients.length, icon: Search, color: 'text-indigo-600', bg: 'bg-indigo-50' },
             { label: 'Con Varias Consultas', value: patients.filter(p => (p.total_appointments || 0) > 1).length, icon: Calendar, color: 'text-purple-600', bg: 'bg-purple-50' },
           ].map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className={`${bg} rounded-2xl p-4`}>
+            <div key={label} className={`${bg}/70 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-white/20 transition-transform hover:scale-[1.02]`}>
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-xl bg-white shadow-sm`}>
                   <Icon className={`h-5 w-5 ${color}`} />
@@ -131,7 +137,7 @@ export default function PatientsPage() {
           <p className="text-sm text-gray-500 mb-4">{filteredPatients.length} resultado{filteredPatients.length !== 1 ? 's' : ''}</p>
 
           {filteredPatients.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+            <div className="flex flex-col items-center justify-center py-20 bg-white/70 backdrop-blur-xl rounded-2xl border-2 border-dashed border-gray-200">
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-4">
                 <Users className="h-8 w-8 text-blue-500" />
               </div>
@@ -147,7 +153,7 @@ export default function PatientsPage() {
               {filteredPatients.map((patient, i) => {
                 const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
                 return (
-                  <div key={patient.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 p-5">
+                  <div key={patient.id} className="bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 p-5">
                     <div className="flex items-start justify-between gap-4">
                       {/* Avatar + name */}
                       <div className="flex items-center gap-4 flex-1 min-w-0">

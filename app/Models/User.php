@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -47,6 +48,8 @@ class User extends Authenticatable
         'pago_movil_phone',
         'pago_movil_document_id',
         'pago_movil_bank',
+        'pago_movil_bank_id',
+        'bank_id',
         'zelle_email',
         'zelle_holder',
         'digital_signature',
@@ -123,6 +126,16 @@ class User extends Authenticatable
     public function specialty_ref()
     {
         return $this->belongsTo(Specialty::class, 'specialty_id');
+    }
+
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'bank_id');
+    }
+
+    public function pagoMovilBank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'pago_movil_bank_id');
     }
 
     public function notificationPreferences()

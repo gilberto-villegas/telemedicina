@@ -90,12 +90,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('payments')->group(function () {
         Route::post('/intent', [PaymentController::class, 'createIntent']);
         Route::get('/{id}/instructions', [PaymentController::class, 'getInstructions']);
+        Route::post('/upload-proof', [PaymentController::class, 'uploadProof']);
         Route::post('/{id}/confirm', [PaymentController::class, 'confirm']);
         Route::get('/invoices', [PaymentController::class, 'invoices']);
-        
-        // Rutas de gestión para el médico
         Route::get('/doctor', [PaymentController::class, 'doctorPayments']);
         Route::post('/{id}/verify', [PaymentController::class, 'verify']);
+    });
+
+    Route::get('/exchange-rate', function (\App\Services\BcvService $bcvService) {
+        return response()->json(['rate' => $bcvService->getExchangeRate()]);
     });
 
     // Recetas
@@ -174,6 +177,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admins', [App\Http\Controllers\AdminController::class, 'indexAdmins']);
         Route::post('/admins', [App\Http\Controllers\AdminController::class, 'storeAdmin']);
         Route::put('/admins/{admin}', [App\Http\Controllers\AdminController::class, 'updateAdmin']);
+
+        // Bancos (CRUD Admin)
+        Route::post('/banks', [App\Http\Controllers\BankController::class, 'store']);
+        Route::put('/banks/{bank}', [App\Http\Controllers\BankController::class, 'update']);
+        Route::delete('/banks/{bank}', [App\Http\Controllers\BankController::class, 'destroy']);
+        Route::get('/payments', [PaymentController::class, 'adminPayments']);
     });
+
+    // Bancos (Acceso general para selects)
+    Route::get('/banks', [App\Http\Controllers\BankController::class, 'index']);
 });
 

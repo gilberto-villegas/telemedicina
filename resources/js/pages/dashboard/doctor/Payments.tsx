@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { authService, User } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { Check, X, Clock, User as UserIcon, Calendar, DollarSign, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
+import { Check, X, Clock, Calendar, DollarSign, TrendingUp, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -84,26 +84,38 @@ export default function DoctorPayments() {
   return (
     <DashboardLayout user={user}>
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Validación de Pagos</h1>
-          <p className="text-gray-500 mt-0.5">Revisa y aprueba los pagos registrados por tus pacientes</p>
+        {/* Premium Header Banner */}
+        <div className="relative overflow-hidden rounded-[3rem] p-10 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-2xl shadow-blue-500/20 mb-10">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -mr-40 -mt-40 blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full -ml-20 -mb-20 blur-3xl" />
+          
+          <div className="relative z-10 space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white text-[10px] font-black uppercase tracking-widest">
+              Gestión de Transacciones
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black text-white leading-tight uppercase tracking-tight">
+              Validación de <br/> <span className="text-blue-200">Pagos</span>
+            </h1>
+            <p className="text-blue-100 text-lg max-w-xl font-medium leading-relaxed uppercase tracking-tight">
+              Revisa y aprueba los pagos registrados por tus pacientes para habilitar sus consultas.
+            </p>
+          </div>
         </div>
 
         {/* Summary stats */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Por Verificar', value: pending.length, Icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Aprobados', value: history.filter(p => p.status.name === 'payment_completed').length, Icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
-            { label: 'Total USD', value: `$${totalRevenue.toFixed(0)}`, Icon: TrendingUp, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+            { label: 'Por Verificar', value: pending.length, Icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50/70 backdrop-blur-md' },
+            { label: 'Aprobados', value: history.filter(p => p.status.name === 'payment_completed').length, Icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50/70 backdrop-blur-md' },
+            { label: 'Total USD', value: `$${totalRevenue.toFixed(0)}`, Icon: TrendingUp, color: 'text-indigo-600', bg: 'bg-indigo-50/70 backdrop-blur-md' },
           ].map(({ label, value, Icon, color, bg }) => (
-            <div key={label} className={`${bg} rounded-2xl p-5 flex items-center gap-3`}>
-              <div className="p-2 bg-white rounded-xl shadow-sm">
-                <Icon className={`h-5 w-5 ${color}`} />
+            <div key={label} className={`${bg} rounded-3xl p-5 flex items-center gap-4 border border-white/40 shadow-sm transition-transform hover:scale-[1.02]`}>
+              <div className="p-3 bg-white/50 rounded-2xl shadow-sm">
+                <Icon className={`h-6 w-6 ${color}`} />
               </div>
               <div>
-                <div className={`text-2xl font-black ${color}`}>{value}</div>
-                <div className="text-xs text-gray-500 font-medium">{label}</div>
+                <div className={`text-2xl font-black ${color} tracking-tight`}>{value}</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{label}</div>
               </div>
             </div>
           ))}
@@ -111,11 +123,13 @@ export default function DoctorPayments() {
 
         {/* Pending payments */}
         <div className="space-y-4">
-          <h2 className="text-base font-bold text-gray-700 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-blue-500" />
+          <h2 className="text-xl font-black text-slate-900 flex items-center gap-3 uppercase tracking-tighter">
+            <div className="p-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/20">
+              <Clock className="h-5 w-5" />
+            </div>
             Pendientes de Verificación
             {pending.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">{pending.length}</span>
+              <span className="ml-1 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-black rounded-full border border-blue-200">{pending.length}</span>
             )}
           </h2>
 
@@ -128,7 +142,7 @@ export default function DoctorPayments() {
           ) : (
             <div className="space-y-3">
               {pending.map((payment) => (
-                <div key={payment.id} className="bg-white rounded-2xl border border-blue-100 shadow-sm p-5">
+                <div key={payment.id} className="bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-xl shadow-blue-500/5 p-6 transition-all hover:scale-[1.01]">
                   <div className="flex flex-col lg:flex-row lg:items-center gap-4 justify-between">
                     {/* Patient info */}
                     <div className="flex items-center gap-3">
@@ -189,29 +203,29 @@ export default function DoctorPayments() {
 
         {/* History table */}
         <div className="space-y-4">
-          <h2 className="text-base font-bold text-gray-700">Historial de Pagos</h2>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+          <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Historial de Pagos</h2>
+          <div className="overflow-hidden">
+            <div className="overflow-x-auto p-1">
+              <table className="w-full border-separate border-spacing-y-3">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Paciente</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Monto</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Método</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+                  <tr className="text-slate-900">
+                    <th className="px-8 py-5 text-left text-[11px] font-black uppercase tracking-[0.2em] first:rounded-l-2xl last:rounded-r-2xl bg-white/50 backdrop-blur-md border border-white/40 shadow-sm">Fecha</th>
+                    <th className="px-8 py-5 text-left text-[11px] font-black uppercase tracking-[0.2em] bg-white/50 backdrop-blur-md border border-white/40 shadow-sm">Paciente</th>
+                    <th className="px-8 py-5 text-left text-[11px] font-black uppercase tracking-[0.2em] bg-white/50 backdrop-blur-md border border-white/40 shadow-sm">Monto</th>
+                    <th className="px-8 py-5 text-left text-[11px] font-black uppercase tracking-[0.2em] bg-white/50 backdrop-blur-md border border-white/40 shadow-sm">Método</th>
+                    <th className="px-8 py-5 text-left text-[11px] font-black uppercase tracking-[0.2em] first:rounded-l-2xl last:rounded-r-2xl bg-white/50 backdrop-blur-md border border-white/40 shadow-sm">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody>
                   {history.length === 0 ? (
-                    <tr><td colSpan={5} className="px-5 py-10 text-center text-gray-400">Sin registros en el historial</td></tr>
+                    <tr><td colSpan={5} className="px-8 py-20 text-center text-slate-400 font-bold bg-white/70 backdrop-blur-xl rounded-[2rem]">Sin registros en el historial</td></tr>
                   ) : history.map((payment) => (
-                    <tr key={payment.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-5 py-3.5 text-gray-500">{format(new Date(payment.created_at), 'dd/MM/yyyy')}</td>
-                      <td className="px-5 py-3.5 font-medium text-gray-900">{payment.user.first_name} {payment.user.last_name}</td>
-                      <td className="px-5 py-3.5 font-bold text-gray-900">${payment.amount_usd}</td>
-                      <td className="px-5 py-3.5 text-gray-600">{METHOD_LABELS[payment.method] || payment.method}</td>
-                      <td className="px-5 py-3.5"><StatusPill name={payment.status.name} label={payment.status.label} /></td>
+                    <tr key={payment.id} className="group transition-all hover:scale-[1.01] hover:shadow-lg shadow-black/5">
+                      <td className="px-8 py-5 text-gray-600 font-medium first:rounded-l-[2rem] bg-white/70 backdrop-blur-xl border-y border-l border-white/40">{format(new Date(payment.created_at), 'dd/MM/yyyy')}</td>
+                      <td className="px-8 py-5 font-black text-slate-900 bg-white/70 backdrop-blur-xl border-y border-white/40">{payment.user.first_name} {payment.user.last_name}</td>
+                      <td className="px-8 py-5 font-black text-blue-600 bg-white/70 backdrop-blur-xl border-y border-white/40">${payment.amount_usd}</td>
+                      <td className="px-8 py-5 text-gray-600 bg-white/70 backdrop-blur-xl border-y border-white/40 font-bold uppercase text-[11px]">{METHOD_LABELS[payment.method] || payment.method}</td>
+                      <td className="px-8 py-5 last:rounded-r-[2rem] bg-white/70 backdrop-blur-xl border-y border-r border-white/40"><StatusPill name={payment.status.name} label={payment.status.label} /></td>
                     </tr>
                   ))}
                 </tbody>

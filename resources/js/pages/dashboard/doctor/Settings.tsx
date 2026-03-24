@@ -15,7 +15,15 @@ type FormData = {
   pago_movil_phone: string; pago_movil_document_id: string; pago_movil_bank: string;
   zelle_email: string; zelle_holder: string;
   digital_signature: string;
+  bank_id: string;
+  pago_movil_bank_id: string;
 };
+
+interface Bank {
+  id: string;
+  name: string;
+  code: string;
+}
 
 function FieldGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -46,6 +54,7 @@ export default function DoctorSettingsPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [banks, setBanks] = useState<Bank[]>([]);
   const [formData, setFormData] = useState<FormData>({
     first_name: '', last_name: '', email: '', phone: '',
     avatar_url: '',
@@ -55,6 +64,7 @@ export default function DoctorSettingsPage() {
     pago_movil_phone: '', pago_movil_document_id: '', pago_movil_bank: '',
     zelle_email: '', zelle_holder: '',
     digital_signature: '',
+    bank_id: '', pago_movil_bank_id: '',
   });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,8 +93,11 @@ export default function DoctorSettingsPage() {
         pago_movil_bank: u.pago_movil_bank || '',
         zelle_email: u.zelle_email || '', zelle_holder: u.zelle_holder || '',
         digital_signature: u.digital_signature || '',
+        bank_id: u.bank_id || '', pago_movil_bank_id: u.pago_movil_bank_id || '',
       });
     }).catch(() => {}).finally(() => setLoading(false));
+
+    api.get('/banks').then(r => setBanks(r.data)).catch(() => {});
   }, [navigate]);
 
   const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -136,18 +149,41 @@ export default function DoctorSettingsPage() {
   const inputClass = "h-10 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-300 w-full";
   const readonlyClass = `${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed`;
 
+  const BankSelect = ({ label, value, onChange }: any) => (
+    <FieldGroup label={label}>
+      <select
+        value={value}
+        onChange={(e) => {
+          const bank = banks.find(b => b.id === e.target.value);
+          onChange(e.target.value, bank?.name || '');
+        }}
+        className={`${inputClass} bg-white border-blue-100 focus:border-blue-400 font-bold uppercase`}
+      >
+        <option value="">Seleccione Banco</option>
+        {banks.map(b => (
+          <option key={b.id} value={b.id}>{b.code} - {b.name}</option>
+        ))}
+      </select>
+    </FieldGroup>
+  );
+
   return (
     <DashboardLayout user={user}>
       <div className="max-w-4xl mx-auto space-y-8 pb-12">
         {/* Header */}
-          <div className="flex items-center gap-6">
+        {/* Header Section (Revisado para Estilo Premium) */}
+        <div className="relative overflow-hidden rounded-[2.5rem] p-8 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-2xl shadow-blue-500/20 mb-8">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-700" />
+          
+          <div className="relative flex flex-col md:flex-row items-center gap-8">
             <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-              <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-blue-500 to-indigo-600 p-1 shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-all duration-500 overflow-hidden">
-                <div className="w-full h-full rounded-[1.85rem] bg-white flex items-center justify-center overflow-hidden relative">
+              <div className="w-28 h-28 rounded-[2.2rem] bg-white/20 p-1 backdrop-blur-md shadow-2xl group-hover:scale-105 transition-all duration-500 overflow-hidden border border-white/30">
+                <div className="w-full h-full rounded-[2rem] bg-white/10 flex items-center justify-center overflow-hidden relative">
                   {formData.avatar_url ? (
                     <img src={formData.avatar_url} alt="Profile" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" />
                   ) : (
-                    <span className="text-3xl font-black text-blue-600">
+                    <span className="text-4xl font-black text-white/90">
                       {formData.first_name?.[0]}{formData.last_name?.[0]}
                     </span>
                   )}
@@ -161,32 +197,30 @@ export default function DoctorSettingsPage() {
                   </div>
                 </div>
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-              />
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-xl shadow-md flex items-center justify-center text-blue-600 border border-slate-100 group-hover:scale-110 transition-transform">
-                <Camera className="h-4 w-4" />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+              <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-white rounded-2xl shadow-xl flex items-center justify-center text-blue-600 border border-slate-100 group-hover:scale-110 transition-transform">
+                <Camera className="h-5 w-5" />
               </div>
             </div>
-            <div>
-              <Link to="/dashboard/doctor" className="group inline-flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors mb-2">
+            
+            <div className="text-center md:text-left">
+              <Link to="/dashboard/doctor" className="group inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-4">
                 <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                <span className="text-sm font-bold uppercase tracking-widest">Panel Principal</span>
+                <span className="text-xs font-black uppercase tracking-[0.2em]">Panel Principal</span>
               </Link>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">Configuración</h1>
-              <p className="text-gray-500 font-medium">Gestiona tu perfil profesional y métodos de pago</p>
+              <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight uppercase mb-2">
+                Configuración <span className="text-blue-200">Profesional</span>
+              </h1>
+              <p className="text-blue-100/80 font-medium text-lg max-w-lg">Gestiona tu identidad digital, especialidad y métodos de recaudación.</p>
             </div>
           </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal & Professional */}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Personal info (readonly) */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-sm p-6">
               <SectionTitle icon={UserIcon} label="Información Personal" sub="Solo lectura — no modificable" />
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -219,7 +253,7 @@ export default function DoctorSettingsPage() {
             </div>
 
             {/* Professional */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-sm p-6">
               <SectionTitle icon={Award} label="Información Profesional" sub="Precio actualizable" />
               <div className="space-y-4">
                 <FieldGroup label="Especialidad *">
@@ -263,7 +297,7 @@ export default function DoctorSettingsPage() {
           </div>
 
           {/* Payment methods */}
-          <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-6">
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-blue-100 shadow-xl p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-blue-600 rounded-xl">
                 <CreditCard className="h-5 w-5 text-white" />
@@ -281,9 +315,11 @@ export default function DoctorSettingsPage() {
                   <Landmark className="h-4 w-4 text-blue-500" /> Transferencia Bancaria (Bolívares)
                 </div>
                 <div className="grid md:grid-cols-3 gap-4">
-                  <FieldGroup label="Banco">
-                    <input value={formData.bank_name} onChange={set('bank_name')} placeholder="Ej. Banesco" className={inputClass} />
-                  </FieldGroup>
+                  <BankSelect 
+                    label="Banco" 
+                    value={formData.bank_id} 
+                    onChange={(id: string, name: string) => setFormData(p => ({...p, bank_id: id, bank_name: name}))} 
+                  />
                   <FieldGroup label="Número de Cuenta">
                     <input value={formData.bank_account_number} onChange={set('bank_account_number')} placeholder="0123..." className={inputClass} />
                   </FieldGroup>
@@ -305,9 +341,11 @@ export default function DoctorSettingsPage() {
                   <Send className="h-4 w-4 text-green-500" /> Pago Móvil
                 </div>
                 <div className="grid md:grid-cols-3 gap-4">
-                  <FieldGroup label="Banco">
-                    <input value={formData.pago_movil_bank} onChange={set('pago_movil_bank')} placeholder="Ej. Mercantil" className={inputClass} />
-                  </FieldGroup>
+                  <BankSelect 
+                    label="Banco" 
+                    value={formData.pago_movil_bank_id} 
+                    onChange={(id: string, name: string) => setFormData(p => ({...p, pago_movil_bank_id: id, pago_movil_bank: name}))} 
+                  />
                   <FieldGroup label="Teléfono">
                     <input value={formData.pago_movil_phone} onChange={set('pago_movil_phone')} placeholder="0424..." className={inputClass} />
                   </FieldGroup>
@@ -335,7 +373,7 @@ export default function DoctorSettingsPage() {
           </div>
 
           {/* Firma Digital */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-xl p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-indigo-50 rounded-xl">
                 <PenTool className="h-5 w-5 text-indigo-600" />

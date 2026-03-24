@@ -92,7 +92,7 @@ export default function DoctorAppointmentsPage() {
         <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
           <Link
             to="/dashboard/doctor"
-            className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-100 text-slate-500 hover:text-blue-600 hover:border-blue-100 transition-all mb-8 shadow-sm"
+            className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/70 backdrop-blur-xl border border-slate-100 text-slate-500 hover:text-blue-600 hover:border-blue-100 transition-all mb-8 shadow-sm"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
             <span className="text-sm font-semibold">Regresar</span>
@@ -130,7 +130,7 @@ export default function DoctorAppointmentsPage() {
             { label: 'En curso', value: todayAppointments.filter(a => a.status_name === 'in_progress').length, color: 'text-emerald-600', bg: 'bg-emerald-50/50', icon: Activity },
             { label: 'Completadas', value: todayAppointments.filter(a => a.status_name === 'completed').length, color: 'text-slate-600', bg: 'bg-slate-50/50', icon: CheckCircle },
           ].map(({ label, value, color, bg, icon: Icon }) => (
-            <div key={label} className={`${bg} rounded-3xl p-6 border border-white shadow-sm flex items-center gap-5 transition-transform hover:scale-[1.02]`}>
+            <div key={label} className={`${bg} backdrop-blur-md rounded-3xl p-6 border border-white shadow-sm flex items-center gap-5 transition-transform hover:scale-[1.02]`}>
               <div className={`w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center ${color}`}>
                 <Icon className="h-6 w-6" />
               </div>
@@ -166,7 +166,7 @@ export default function DoctorAppointmentsPage() {
           </div>
 
           {todayAppointments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50">
+            <div className="flex flex-col items-center justify-center py-24 bg-white/70 backdrop-blur-xl rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50">
               <div className="w-24 h-24 bg-slate-50 rounded-[32px] flex items-center justify-center mb-6">
                 <Calendar className="h-10 w-10 text-slate-200" />
               </div>
@@ -184,7 +184,7 @@ export default function DoctorAppointmentsPage() {
                 const typeColor = apt.type === 'videoconsulta' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600';
 
                 return (
-                  <div key={apt.id} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 overflow-hidden">
+                  <div key={apt.id} className="group bg-white/70 backdrop-blur-xl rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 overflow-hidden">
                     <div className="flex flex-col sm:flex-row items-stretch">
                       {/* Time strip */}
                       <div className="bg-slate-900 flex flex-col items-center justify-center px-6 py-6 sm:w-[100px] text-white transition-colors group-hover:bg-blue-600">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { authService, User } from '@/lib/auth';
@@ -6,7 +6,8 @@ import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Check, AlertCircle, Stethoscope, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, Check, AlertCircle, Stethoscope, Clock, Calendar as CalendarIcon, FileUp, Loader2, FileText, CheckCircle } from 'lucide-react';
 import { format, addDays, startOfToday, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,13 @@ export default function BookingPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [reason, setReason] = useState('');
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  
+  // Drag & Drop States
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
   
   // Payment States
   const [step, setStep] = useState<'datetime' | 'payment' | 'confirmation'>('datetime');
@@ -61,7 +69,17 @@ export default function BookingPage() {
     }
     setUser(currentUser);
     loadDoctor();
+    loadExchangeRate();
   }, [id]);
+
+  const loadExchangeRate = async () => {
+    try {
+      const response = await api.get('/exchange-rate');
+      setExchangeRate(response.data.rate);
+    } catch (error) {
+      console.error('Error loading exchange rate:', error);
+    }
+  };
 
   useEffect(() => {
     if (doctor) {
@@ -97,6 +115,49 @@ export default function BookingPage() {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    
+    setUploadingProof(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await api.post('/payments/upload-proof', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setProofUrl(response.data.url);
+    } catch (error) {
+      console.error('Error uploading proof:', error);
+      alert('Error al subir el comprobante. Inténtalo de nuevo.');
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileUpload(file);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileUpload(file);
+  };
+
   const handleCreateAppointmentAndPayment = async () => {
     if (!selectedSlot || !selectedMethod) return;
 
@@ -107,7 +168,7 @@ export default function BookingPage() {
       const appoResponse = await api.post('/appointments', {
         doctor_id: id,
         appointment_date: appointmentDate,
-        reason: 'Consulta médica',
+        reason: reason || 'Consulta médica',
         duration_minutes: 30,
         type: type // Send selected type to backend
       });
@@ -141,6 +202,7 @@ export default function BookingPage() {
         reference_number: paymentData.reference,
         payment_date: paymentData.date,
         payment_phone: paymentData.phone,
+        proof_url: proofUrl,
       });
       setStep('confirmation');
     } catch (error: any) {
@@ -208,7 +270,15 @@ export default function BookingPage() {
                 </div>
                 <div className="pt-4 border-t border-primary/10">
                   <p className="text-sm text-muted-foreground uppercase tracking-wider font-bold">Costo de Consulta</p>
-                  <p className="text-3xl font-black text-primary">${doctor.consultation_price_usd}</p>
+                  <p className="text-3xl font-black text-primary">${doctor.consultation_price_usd} USD</p>
+                  {exchangeRate && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tasa BCV: {exchangeRate.toLocaleString('es-VE', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} BS</p>
+                      <p className="text-lg font-bold text-slate-700 uppercase tracking-tighter italic">
+                        ≈ {(doctor.consultation_price_usd * exchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} VES
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -299,6 +369,32 @@ export default function BookingPage() {
                 </Card>
 
                 {selectedSlot && (
+                  <Card className="border-none shadow-2xl overflow-hidden bg-gradient-to-br from-indigo-50/50 to-background animate-in slide-in-from-bottom-2 duration-300">
+                    <CardHeader className="pb-2">
+                       <CardTitle className="text-xl font-bold flex items-center gap-2 text-indigo-900">
+                          <div className="p-2 bg-indigo-600 rounded-lg text-white">
+                            <FileText className="h-4 w-4" />
+                          </div>
+                          3. Motivo de la Consulta
+                       </CardTitle>
+                       <p className="text-xs text-muted-foreground uppercase font-black tracking-widest pl-10">Describe brevemente tus síntomas o el motivo de tu visita</p>
+                    </CardHeader>
+                    <CardContent className="pt-4 space-y-3">
+                       <Textarea 
+                         placeholder="Ej: Tengo dolor de cabeza persistente y fiebre desde ayer..."
+                         className="min-h-[100px] rounded-2xl border-2 border-indigo-100 focus:border-indigo-500 transition-all bg-white/50 backdrop-blur-sm p-4 text-sm font-medium"
+                         value={reason}
+                         onChange={(e) => setReason(e.target.value)}
+                       />
+                       <div className="flex items-center gap-2 pl-2">
+                          <CheckCircle className="h-3 w-3 text-emerald-500" />
+                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Información confidencial para el médico</p>
+                       </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {selectedSlot && (
                   <Card className="border-none shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
                     <CardHeader>
                       <CardTitle className="text-2xl font-bold">3. Método de Pago</CardTitle>
@@ -352,7 +448,16 @@ export default function BookingPage() {
                     {selectedMethod === 'pago_movil' && paymentInstructions && (
                       <div className="text-center space-y-2">
                         <p className="text-xs font-bold uppercase text-primary">Datos para Pago Móvil</p>
-                        <p className="text-2xl font-black">{paymentInstructions.details.bank}</p>
+                        <div className="bg-white/50 py-2 px-4 rounded-xl border border-primary/10 mb-4 inline-block">
+                           <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Monto a pagar</p>
+                           <p className="text-2xl font-black text-primary">
+                             {(doctor.consultation_price_usd * (exchangeRate || 1)).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} VES
+                           </p>
+                        </div>
+                        <p className="text-xl font-black">{paymentInstructions.details.bank}</p>
+                        {paymentInstructions.details.bank_code && (
+                          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest -mt-1">{paymentInstructions.details.bank_code}</p>
+                        )}
                         <p className="text-xl font-bold">{paymentInstructions.details.phone}</p>
                         <p className="text-lg font-medium">{paymentInstructions.details.document_id}</p>
                       </div>
@@ -367,9 +472,18 @@ export default function BookingPage() {
                     {selectedMethod === 'bank_transfer' && paymentInstructions && (
                       <div className="space-y-2">
                         <p className="text-xs font-bold uppercase text-primary text-center">Datos para Transferencia</p>
+                        <div className="bg-white/50 py-3 px-4 rounded-xl border border-primary/10 mb-4 text-center">
+                           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total en Bolívares</p>
+                           <p className="text-xl font-black text-primary">
+                             {(doctor.consultation_price_usd * (exchangeRate || 1)).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} VES
+                           </p>
+                        </div>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <span className="text-muted-foreground">Banco:</span>
-                          <span className="font-bold">{paymentInstructions.details.bank_name}</span>
+                          <span className="font-bold">
+                            {paymentInstructions.details.bank_name}
+                            {paymentInstructions.details.bank_code && <span className="text-xs text-slate-500 ml-2">({paymentInstructions.details.bank_code})</span>}
+                          </span>
                           <span className="text-muted-foreground">Cuenta:</span>
                           <span className="font-bold break-all">{paymentInstructions.details.account_number}</span>
                           <span className="text-muted-foreground">Titular:</span>
@@ -384,11 +498,19 @@ export default function BookingPage() {
                   {/* Payment Data Form */}
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-muted-foreground uppercase">Referencia de Pago</label>
                       <Input
                         placeholder="Introduce los últimos 6 dígitos o ID"
                         value={paymentData.reference}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentData({ ...paymentData, reference: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-muted-foreground uppercase">Fecha en que se hizo el pago *</label>
+                      <Input
+                        type="date"
+                        required
+                        value={paymentData.date}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentData({ ...paymentData, date: e.target.value })}
                       />
                     </div>
                     {selectedMethod === 'pago_movil' && (
@@ -403,9 +525,48 @@ export default function BookingPage() {
                     )}
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-muted-foreground uppercase">Captura de pantalla (Opcional)</label>
-                      <div className="border-2 border-dashed border-muted rounded-xl p-8 text-center hover:border-primary/50 transition-all cursor-pointer">
-                        <Check className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground font-medium">Haz clic para subir o arrastra tu comprobante</p>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*,.pdf"
+                        onChange={handleFileSelect}
+                      />
+                      <div 
+                        onDragOver={onDragOver}
+                        onDragLeave={onDragLeave}
+                        onDrop={onDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={cn(
+                          "border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-2",
+                          isDragging ? "border-primary bg-primary/5 scale-102" : "border-muted hover:border-primary/50",
+                          proofUrl ? "border-emerald-500 bg-emerald-50" : ""
+                        )}
+                      >
+                        {uploadingProof ? (
+                          <>
+                            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                            <p className="text-sm text-primary font-bold">Subiendo archivo...</p>
+                          </>
+                        ) : proofUrl ? (
+                          <>
+                            <Check className="h-10 w-10 text-emerald-600 bg-emerald-100 rounded-full p-2" />
+                            <p className="text-sm text-emerald-700 font-bold uppercase">Comprobante adjuntado con éxito</p>
+                            <p className="text-[10px] text-emerald-600 underline">Haga clic para cambiar el archivo</p>
+                          </>
+                        ) : (
+                          <>
+                            <FileUp className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                            <div className="space-y-1">
+                              <p className="text-sm text-slate-600 font-bold">
+                                Haz clic para subir o arrastra tu comprobante
+                              </p>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-medium">
+                                JPG, PNG o PDF (Máx. 2MB)
+                              </p>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

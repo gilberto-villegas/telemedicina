@@ -37,7 +37,15 @@ type FormData = {
   pago_movil_bank: string;
   zelle_email: string;
   zelle_holder: string;
+  bank_id: string;
+  pago_movil_bank_id: string;
 };
+
+interface Bank {
+  id: string;
+  name: string;
+  code: string;
+}
 
 export default function AdminSettings() {
   const navigate = useNavigate();
@@ -49,7 +57,10 @@ export default function AdminSettings() {
     bank_document_id: '', bank_account_type: '',
     pago_movil_phone: '', pago_movil_document_id: '', pago_movil_bank: '',
     zelle_email: '', zelle_holder: '',
+    bank_id: '', pago_movil_bank_id: '',
   });
+  
+  const [banks, setBanks] = useState<Bank[]>([]);
   
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,8 +94,12 @@ export default function AdminSettings() {
         pago_movil_bank: u.pago_movil_bank || '',
         zelle_email: u.zelle_email || '',
         zelle_holder: u.zelle_holder || '',
+        bank_id: u.bank_id || '',
+        pago_movil_bank_id: u.pago_movil_bank_id || '',
       });
     }).finally(() => setLoading(false));
+
+    api.get('/banks').then(r => setBanks(r.data)).catch(() => {});
   }, [navigate]);
 
   const handleInputChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -153,24 +168,49 @@ export default function AdminSettings() {
     </div>
   );
 
+  const BankSelect = ({ label, value, onChange, placeholder }: any) => (
+    <div className="space-y-2 group">
+      <label className="text-[10px] font-black text-slate-400 ml-2 tracking-widest uppercase">{label}</label>
+      <div className="relative">
+        <select 
+          className="w-full h-14 px-4 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all text-sm font-bold appearance-none uppercase tracking-tighter"
+          value={value}
+          onChange={(e) => {
+            const bank = banks.find(b => b.id === e.target.value);
+            onChange(e.target.value, bank?.name || '');
+          }}
+        >
+          <option value="">{placeholder || 'SELECCIONE BANCO'}</option>
+          {banks.map(b => (
+            <option key={b.id} value={b.id}>{b.code} - {b.name}</option>
+          ))}
+        </select>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <DashboardLayout user={user}>
       <div className="max-w-6xl mx-auto space-y-12 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
         
-        {/* Modern Header Section */}
-        <div className="relative overflow-hidden rounded-[3rem] bg-slate-900 p-12 shadow-2xl shadow-slate-200">
-            {/* Background elements */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none" />
+        {/* Modern Header Section (Doctor Style Sync) */}
+        <div className="relative overflow-hidden rounded-[3rem] p-10 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-2xl shadow-blue-500/20">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -mr-40 -mt-40 blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full -ml-20 -mb-20 blur-3xl" />
 
             <div className="flex flex-col lg:flex-row items-center gap-10 relative z-10">
                 <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                    <div className="w-40 h-40 rounded-[2.5rem] p-1.5 bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-2xl shadow-blue-500/20 group-hover:scale-105 transition-all duration-500">
-                        <div className="w-full h-full rounded-[2.2rem] bg-white flex items-center justify-center overflow-hidden relative border-4 border-slate-900">
+                    <div className="w-40 h-40 rounded-[2.5rem] p-1.5 bg-white/20 hover:bg-white/40 transition-all duration-500 backdrop-blur-md border border-white/30">
+                        <div className="w-full h-full rounded-[2.2rem] bg-white flex items-center justify-center overflow-hidden relative">
                             {formData.avatar_url ? (
                                 <img src={formData.avatar_url} alt="Profile" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" />
                             ) : (
-                                <span className="text-5xl font-black text-slate-900">
+                                <span className="text-5xl font-black text-blue-700">
                                     {formData.first_name?.[0]}{formData.last_name?.[0]}
                                 </span>
                             )}
@@ -194,17 +234,19 @@ export default function AdminSettings() {
                         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                         <span className="text-[10px] font-black tracking-[0.3em] uppercase">Panel Administrativo</span>
                     </Link>
-                    <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-4 lowercase">
+                    <h1 className="text-4xl md:text-5xl font-black text-white leading-tight uppercase mb-2">
                         {formData.first_name} {formData.last_name}
-                        <span className="block text-blue-500 text-lg tracking-[0.5em] uppercase mt-2 font-bold opacity-80">MI CONFIGURACIÓN</span>
                     </h1>
+                    <p className="text-blue-100 text-lg font-medium leading-relaxed uppercase tracking-tight">
+                        MI CONFIGURACIÓN ADMINISTRATIVA
+                    </p>
                 </div>
 
                 <Button 
                     onClick={(e) => handleSubmit(e)}
                     disabled={saving}
-                    className={`h-20 px-12 rounded-[1.5rem] text-sm font-black tracking-widest transition-all active:scale-95 shadow-2xl border-none ${
-                        saved ? 'bg-emerald-500 text-white' : 'bg-white text-slate-900 hover:bg-slate-100'
+                    className={`h-16 px-10 rounded-2xl text-sm font-black tracking-widest transition-all active:scale-95 shadow-2xl border-none ${
+                        saved ? 'bg-emerald-500 text-white' : 'bg-white text-blue-700 hover:bg-blue-50'
                     }`}
                 >
                     {saved ? <CheckCircle className="w-6 h-6 mr-3" /> : saving ? <Loader2 className="w-6 h-6 mr-3 animate-spin" /> : <Save className="w-6 h-6 mr-3" />}
@@ -292,7 +334,11 @@ export default function AdminSettings() {
                                 <span className="text-[10px] font-black uppercase tracking-[0.3em]">Transferencia Bancaria (Bs.)</span>
                             </div>
                             <div className="grid md:grid-cols-2 gap-6">
-                                <InputField label="Banco" value={formData.bank_name} onChange={handleInputChange('bank_name')} placeholder="EJ. BANESCO" />
+                                <BankSelect 
+                                    label="Banco" 
+                                    value={formData.bank_id} 
+                                    onChange={(id: string, name: string) => setFormData(p => ({...p, bank_id: id, bank_name: name}))} 
+                                />
                                 <InputField label="Cuenta Bancaria (20 dígitos)" value={formData.bank_account_number} onChange={handleInputChange('bank_account_number')} />
                                 <InputField label="Titular de la Cuenta" value={formData.bank_account_holder} onChange={handleInputChange('bank_account_holder')} />
                                 <div className="grid grid-cols-2 gap-4">
@@ -313,7 +359,11 @@ export default function AdminSettings() {
                                     <span className="text-[10px] font-black uppercase tracking-[0.3em]">Pago Móvil</span>
                                 </div>
                                 <div className="space-y-6">
-                                    <InputField label="Banco" value={formData.pago_movil_bank} onChange={handleInputChange('pago_movil_bank')} placeholder="EJ. MERCANTIL" />
+                                    <BankSelect 
+                                        label="Banco" 
+                                        value={formData.pago_movil_bank_id} 
+                                        onChange={(id: string, name: string) => setFormData(p => ({...p, pago_movil_bank_id: id, pago_movil_bank: name}))} 
+                                    />
                                     <InputField label="Teléfono Receptor" value={formData.pago_movil_phone} onChange={handleInputChange('pago_movil_phone')} />
                                     <InputField label="Cédula de Identidad" value={formData.pago_movil_document_id} onChange={handleInputChange('pago_movil_document_id')} />
                                 </div>
@@ -343,6 +393,13 @@ export default function AdminSettings() {
                 </Card>
             </div>
         </form>
+        <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            accept="image/*" 
+            className="hidden" 
+        />
       </div>
     </DashboardLayout>
   );

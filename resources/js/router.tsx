@@ -32,6 +32,8 @@ import AdminDoctors from './pages/dashboard/admin/Doctors';
 import AdminPatients from './pages/dashboard/admin/Patients';
 import AdminSpecialties from './pages/dashboard/admin/Specialties';
 import AdminAdmins from './pages/dashboard/admin/Admins';
+import AdminBanks from './pages/dashboard/admin/AdminBanks';
+import AdminPayments from './pages/dashboard/admin/AdminPayments';
 import AdminSettings from './pages/dashboard/admin/AdminSettings';
 
 import VideoCall from './pages/dashboard/VideoCall';
@@ -86,6 +88,8 @@ export default function AppRoutes() {
                     <Route path="patients" element={<AdminPatients />} />
                     <Route path="specialties" element={<AdminSpecialties />} />
                     <Route path="admins" element={<AdminAdmins />} />
+                    <Route path="banks" element={<AdminBanks />} />
+                    <Route path="payments" element={<AdminPayments />} />
                     <Route path="settings" element={<AdminSettings />} />
                 </Route>
 

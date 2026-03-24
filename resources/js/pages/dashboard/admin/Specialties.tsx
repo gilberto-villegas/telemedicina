@@ -139,65 +139,63 @@ export default function AdminSpecialties() {
                         </Card>
                     )}
 
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden">
-                        <div className="divide-y divide-slate-50">
-                            {specialties.length === 0 ? (
-                                <div className="p-20 text-center text-slate-400 tracking-widest font-black uppercase">NO HAY ESPECIALIDADES CONFIGURADAS</div>
-                            ) : (
-                                specialties.map(spec => (
-                                    <div key={spec.id} className="group p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                                        {editingId === spec.id ? (
-                                            <div className="flex-1 flex items-center gap-4">
-                                                <input 
-                                                    type="text" 
-                                                    autoFocus
-                                                    className="flex-1 h-12 bg-white border border-blue-200 rounded-xl px-4 text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                                    value={newSpecialtyName}
-                                                    onChange={(e) => setNewSpecialtyName(e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleUpdate(spec.id)}
-                                                />
-                                                <div className="flex gap-2">
-                                                    <Button onClick={() => handleUpdate(spec.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white h-12 w-12 rounded-xl p-0">
-                                                        <CheckCircle2 className="w-5 h-5" />
-                                                    </Button>
-                                                    <Button onClick={() => setEditingId(null)} variant="ghost" className="text-slate-400 hover:bg-slate-100 h-12 w-12 rounded-xl p-0">
-                                                        <X className="w-5 h-5" />
-                                                    </Button>
+                    <div className="space-y-4">
+                        {specialties.length === 0 ? (
+                            <div className="p-20 text-center text-slate-400 tracking-widest font-black uppercase bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-white/40">NO HAY ESPECIALIDADES CONFIGURADAS</div>
+                        ) : (
+                            specialties.map(spec => (
+                                <div key={spec.id} className="group p-6 flex items-center justify-between bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-lg shadow-slate-200/20 hover:scale-[1.01] transition-all hover:shadow-blue-500/10">
+                                    {editingId === spec.id ? (
+                                        <div className="flex-1 flex items-center gap-4">
+                                            <input 
+                                                type="text" 
+                                                autoFocus
+                                                className="flex-1 h-14 bg-white/50 border border-blue-200 rounded-2xl px-5 text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                                value={newSpecialtyName}
+                                                onChange={(e) => setNewSpecialtyName(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleUpdate(spec.id)}
+                                            />
+                                            <div className="flex gap-2">
+                                                <Button onClick={() => handleUpdate(spec.id)} className="bg-emerald-500 hover:bg-emerald-600 text-white h-12 w-12 rounded-xl p-0">
+                                                    <CheckCircle2 className="w-5 h-5" />
+                                                </Button>
+                                                <Button onClick={() => setEditingId(null)} variant="ghost" className="text-slate-400 hover:bg-slate-100 h-12 w-12 rounded-xl p-0">
+                                                    <X className="w-5 h-5" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center gap-6">
+                                                <div className="w-14 h-14 bg-blue-50/50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-inner">
+                                                    <BookOpen className="w-7 h-7" />
+                                                </div>
+                                                <div>
+                                                    <div className="font-black text-slate-900 group-hover:text-blue-700 transition-colors tracking-tight text-xl leading-tight">{spec.name}</div>
+                                                    <div className="text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mt-1">REGISTRO SISTEMA</div>
                                                 </div>
                                             </div>
-                                        ) : (
-                                            <>
-                                                <div className="flex items-center gap-5">
-                                                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-                                                        <BookOpen className="w-6 h-6" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-black text-slate-900 group-hover:text-blue-700 transition-colors tracking-tight text-lg">{spec.name}</div>
-                                                        <div className="text-[10px] text-slate-400 uppercase tracking-widest">ID: {spec.id}</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <Button 
-                                                        onClick={() => { setEditingId(spec.id); setNewSpecialtyName(spec.name); setIsAdding(false); }}
-                                                        variant="ghost" 
-                                                        className="h-10 w-10 p-0 rounded-xl hover:bg-blue-50 hover:text-blue-600"
-                                                    >
-                                                        <Pencil className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button 
-                                                        onClick={() => handleDelete(spec.id)}
-                                                        variant="ghost" 
-                                                        className="h-10 w-10 p-0 rounded-xl hover:bg-rose-50 hover:text-rose-600"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
+                                            <div className="flex gap-2">
+                                                <Button 
+                                                    onClick={() => { setEditingId(spec.id); setNewSpecialtyName(spec.name); setIsAdding(false); }}
+                                                    variant="ghost" 
+                                                    className="h-12 w-12 p-0 rounded-2xl hover:bg-blue-50 hover:text-blue-600 hover:scale-110 transition-all"
+                                                >
+                                                    <Pencil className="w-5 h-5" />
+                                                </Button>
+                                                <Button 
+                                                    onClick={() => handleDelete(spec.id)}
+                                                    variant="ghost" 
+                                                    className="h-12 w-12 p-0 rounded-2xl hover:bg-rose-50 hover:text-rose-600 hover:scale-110 transition-all"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

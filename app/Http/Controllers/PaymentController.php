@@ -6,12 +6,26 @@ use App\Models\Payment;
 use App\Models\Appointment;
 use App\Models\Status;
 use App\Notifications\PaymentVerifiedNotification;
+use App\Services\BcvService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use App\Models\Notification;
+use App\Notifications\PaymentRegisteredDoctorNotification;
+use App\Notifications\PaymentRegisteredAdminNotification;
+use App\Notifications\PaymentRegisteredPatientNotification;
 
 class PaymentController extends Controller
 {
+    protected $bcvService;
+
+    public function __construct(BcvService $bcvService)
+    {
+        $this->bcvService = $bcvService;
+    }
+
     public function createIntent(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -39,8 +53,8 @@ class PaymentController extends Controller
             }
         }
 
-        // Obtener tasa de cambio (TODO: Integrar API)
-        $exchangeRate = 40.5; // Ajustado a valor más reciente aproximado
+        // Obtener tasa de cambio oficial del BCV
+        $exchangeRate = $this->bcvService->getExchangeRate();
 
         $payment = Payment::create([
             'id' => Str::uuid(),
@@ -66,7 +80,7 @@ class PaymentController extends Controller
 
     public function getInstructions(Request $request, string $id): JsonResponse
     {
-        $payment = Payment::with('appointment.doctor')->findOrFail($id);
+        $payment = Payment::with('appointment.doctor')->where('appointment_id', $id)->firstOrFail();
         
         // Verificar que el usuario es el paciente
         if ($payment->user_id !== $request->user()->id) {
@@ -112,28 +126,98 @@ class PaymentController extends Controller
             ]);
         }
 
+        // Enviar Notificaciones
+        try {
+            $patientName = $user->full_name;
+
+            // 1. Al Médico
+            if ($payment->appointment && $payment->appointment->doctor) {
+                $doctor = $payment->appointment->doctor;
+                $doctor->notify(new PaymentRegisteredDoctorNotification($payment));
+                
+                // Registro manual en la tabla notifications para el Dashboard
+                Notification::create([
+                    'user_id' => $doctor->id,
+                    'type' => 'payment_registered',
+                    'title' => 'Nuevo Pago Registrado',
+                    'message' => 'Se ha registrado un pago para tu cita con ' . $patientName . '.',
+                    'data' => ['payment_id' => $payment->id],
+                    'channels' => ['email', 'database'],
+                    'sent_at' => now(),
+                ]);
+            }
+
+            // 2. A los Administradores
+            $admins = User::where('type', 'admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new PaymentRegisteredAdminNotification($payment));
+                
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'type' => 'payment_awaiting_validation',
+                    'title' => 'Validación de Pago Requerida',
+                    'message' => 'El paciente ' . $patientName . ' ha registrado un pago por $' . $payment->amount_usd . ' USD.',
+                    'data' => ['payment_id' => $payment->id],
+                    'channels' => ['email', 'database'],
+                    'sent_at' => now(),
+                ]);
+            }
+
+            // 3. Al Paciente
+            $user->notify(new PaymentRegisteredPatientNotification($payment));
+            
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'payment_registered',
+                'title' => 'Pago en Proceso de Verificación',
+                'message' => 'Hemos recibido tu pago. Tu cita será activada una vez sea validada.',
+                'data' => ['payment_id' => $payment->id],
+                'channels' => ['email', 'database'],
+                'sent_at' => now(),
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error enviando notificaciones de pago: ' . $e->getMessage());
+        }
+
         return response()->json([
-            'message' => 'Pago confirmado, en proceso de verificación por el doctor',
+            'message' => 'Pago confirmado, en proceso de verificación por el administrador',
             'payment' => $payment
         ]);
     }
 
-    /**
-     * Listar pagos para el doctor autenticado
-     */
-    public function doctorPayments(Request $request): JsonResponse
+    public function uploadProof(Request $request): JsonResponse
     {
-        $user = $request->user();
-        if (!$user->isDoctor()) {
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,pdf|max:2048',
+        ]);
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $path = $file->store('proofs', 'public');
+            $url = asset('storage/' . $path);
+
+            return response()->json([
+                'url' => $url,
+                'message' => 'Archivo subido exitosamente'
+            ]);
+        }
+
+        return response()->json(['message' => 'Error al subir el archivo'], 400);
+    }
+
+    /**
+     * Listar pagos para el administrador (Todos los pagos del sistema)
+     */
+    public function adminPayments(Request $request): JsonResponse
+    {
+        if (!$request->user()->isAdmin()) {
             return response()->json(['message' => 'Acceso denegado'], 403);
         }
 
-        $payments = Payment::whereHas('appointment', function($q) use ($user) {
-            $q->where('doctor_id', $user->id);
-        })
-        ->with(['user', 'appointment', 'status'])
-        ->orderBy('created_at', 'desc')
-        ->get();
+        $payments = Payment::with(['user', 'appointment.doctor', 'status'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json($payments);
     }
@@ -143,14 +227,14 @@ class PaymentController extends Controller
      */
     public function verify(Request $request, string $id): JsonResponse
     {
-        $doctor = $request->user();
-        if (!$doctor->isDoctor()) {
+        $user = $request->user();
+        if (!$user->isDoctor() && !$user->isAdmin()) {
             return response()->json(['message' => 'Acceso denegado'], 403);
         }
 
         $payment = Payment::with('appointment.patient')->findOrFail($id);
 
-        if ($payment->appointment->doctor_id !== $doctor->id) {
+        if ($user->isDoctor() && $payment->appointment->doctor_id !== $user->id) {
             return response()->json(['message' => 'Este pago no pertenece a sus citas'], 403);
         }
 
@@ -192,13 +276,20 @@ class PaymentController extends Controller
 
     public function invoices(Request $request): JsonResponse
     {
+        return $this->myPayments($request);
+    }
+
+    /**
+     * Todos los pagos del paciente autenticado (sin filtros restrictivos)
+     */
+    public function myPayments(Request $request): JsonResponse
+    {
         $user = $request->user();
 
-        $payments = Payment::where('user_id', $user->id)
-            ->completed()
-            ->whereNotNull('invoice_number')
+        $payments = Payment::with(['appointment.doctor', 'status'])
+            ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->get();
 
         return response()->json($payments);
     }
@@ -207,17 +298,27 @@ class PaymentController extends Controller
     {
         $data = [];
         
+        // Cargar relaciones bancarias si existen los IDs
+        if ($doctor->pago_movil_bank_id) {
+            $doctor->load('pagoMovilBank');
+        }
+        if ($doctor->bank_id) {
+            $doctor->load('bank');
+        }
+        
         switch ($method) {
             case 'pago_movil':
                 $data = [
                     'phone' => $doctor->pago_movil_phone,
                     'document_id' => $doctor->pago_movil_document_id,
                     'bank' => $doctor->pago_movil_bank,
+                    'bank_code' => $doctor->pagoMovilBank?->code,
                 ];
                 break;
             case 'bank_transfer':
                 $data = [
                     'bank_name' => $doctor->bank_name,
+                    'bank_code' => $doctor->bank?->code,
                     'account_number' => $doctor->bank_account_number,
                     'account_holder' => $doctor->bank_account_holder,
                     'document_id' => $doctor->bank_document_id,

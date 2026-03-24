@@ -103,7 +103,7 @@ export default function DashboardType() {
         );
     }
     const StatCard = ({ title, value, icon: Icon, sub, color }: { title: string, value: any, icon: any, sub: string, color: string }) => (
-        <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 group">
+        <Card className="overflow-hidden border-none bg-white/70 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 group">
             <CardContent className="p-0">
                 <div className={`p-6 bg-gradient-to-br ${color} relative overflow-hidden`}>
                     <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
@@ -237,11 +237,18 @@ export default function DashboardType() {
                                     color="bg-emerald-600"
                                 />
                                 <QuickActionButton 
+                                    to={`/dashboard/${user.type}/payments`}
+                                    icon={CreditCard}
+                                    label="Mis Pagos"
+                                    sub="Historial y comprobantes de pago"
+                                    color="bg-rose-600"
+                                />
+                                <QuickActionButton 
                                     to={`/dashboard/${user.type}/settings`}
                                     icon={Users}
                                     label="Mi Perfil"
                                     sub="Datos personales y avisos"
-                                    color="bg-rose-600"
+                                    color="bg-slate-600"
                                 />
                             </div>
                         </div>
@@ -395,13 +402,6 @@ export default function DashboardType() {
                                     color="bg-blue-600"
                                 />
                                 <QuickActionButton 
-                                    to={`/dashboard/${user.type}/payments`}
-                                    icon={CreditCard}
-                                    label="Validar Pagos"
-                                    sub="Verificar pagos de pacientes"
-                                    color="bg-orange-600"
-                                />
-                                <QuickActionButton 
                                     to={`/dashboard/${user.type}/availability`}
                                     icon={Clock}
                                     label="Disponibilidad"
@@ -428,7 +428,7 @@ export default function DashboardType() {
                         {/* Recent Appointments Placeholder or Side info */}
                         <div className="space-y-6">
                             <h2 className="text-2xl font-black text-slate-800 px-2">Próximas Citas</h2>
-                            <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 bg-white overflow-hidden p-8 text-center space-y-4">
+                            <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 bg-white/70 backdrop-blur-xl overflow-hidden p-8 text-center space-y-4">
                                 <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto border border-dashed border-slate-200">
                                     <Calendar className="h-8 w-8 text-slate-300" />
                                 </div>

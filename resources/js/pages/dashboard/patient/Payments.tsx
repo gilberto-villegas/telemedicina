@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService, User } from '@/lib/auth';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { CreditCard, Calendar, CheckCircle, XCircle, Clock, TrendingUp, Stethoscope, ArrowLeft } from 'lucide-react';
+import { CreditCard, Calendar, TrendingUp, ArrowLeft } from 'lucide-react';
 import { api } from '@/lib/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -165,18 +165,6 @@ export default function PatientPaymentsPage() {
                       </div>
                     </div>
 
-                    {payment.status.name === 'payment_pending' && (
-                      <button
-                        onClick={async () => {
-                          try { await api.post(`/payments/${payment.id}/confirm`); loadPayments(); }
-                          catch { alert('Error al confirmar pago'); }
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-all flex-shrink-0"
-                      >
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        Confirmar
-                      </button>
-                    )}
                   </div>
                 </div>
               );

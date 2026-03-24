@@ -18,7 +18,9 @@ import {
   X,
   Pill,
   MessageSquare,
-  Clock
+  Clock,
+  ShieldCheck,
+  BookMarked
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { AIAssistant } from '@/components/dashboard/AIAssistant';
@@ -41,6 +43,9 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const pathname = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { unreadCount } = useNotificationsContext();
+  const isAdmin = user.type.toLowerCase() === 'admin';
+  const isDoctor = user.type.toLowerCase() === 'doctor';
+  const showSidebar = !isAdmin && !isDoctor;
 
   const handleLogout = () => {
     authService.logout();
@@ -84,6 +89,17 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       ];
     }
 
+    if (user.type.toLowerCase() === 'admin') {
+      return [
+        ...baseItems,
+        { href: `/dashboard/${user.type}/doctors`, icon: Stethoscope, label: 'Médicos', id: 'nav-admin-doctors' },
+        { href: `/dashboard/${user.type}/patients`, icon: Users, label: 'Pacientes', id: 'nav-admin-patients' },
+        { href: `/dashboard/${user.type}/specialties`, icon: BookMarked, label: 'Especialidades', id: 'nav-admin-specialties' },
+        { href: `/dashboard/${user.type}/admins`, icon: ShieldCheck, label: 'Administradores', id: 'nav-admin-admins' },
+        { href: `/dashboard/${user.type}/settings`, icon: Settings, label: 'Configuración', id: 'nav-admin-settings' },
+      ];
+    }
+
     return baseItems;
   };
 
@@ -91,7 +107,10 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const isActive = (href: string) => pathname.pathname === href;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen"
+      style={{ backgroundColor: (isAdmin || isDoctor || user.type === 'patient') ? 'transparent' : '#f9fafb' }}
+    >
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? '' : 'hidden'}`}>
         <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
@@ -129,28 +148,36 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       </div>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:bg-white lg:border-r">
-        <div className="p-6 border-b">
-          <div className="flex items-center gap-2">
-            <Stethoscope className="h-8 w-8 text-primary" />
-            <span className="font-bold text-xl text-primary">Telemedicina</span>
+      {showSidebar && (
+        <aside 
+          className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:border-r lg:border-white/5"
+          style={{ backgroundColor: '#0f172a' }}
+        >
+          {/* ... sidebar content remains same ... */}
+        <div className="p-6 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-blue-500/20">
+              <Stethoscope className="h-6 w-6 text-blue-500" />
+            </div>
+            <span className="font-bold text-lg text-white tracking-tighter">TELEMEDICINA</span>
           </div>
         </div>
         <nav className="p-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const active = isActive(item.href);
             return (
               <Link
                 key={item.href}
                 id={item.id}
                 to={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
-                  ? 'bg-primary text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${active
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
                   }`}
               >
-                <Icon className="h-5 w-5" />
-                <span className="flex-1">{item.label}</span>
+                <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-slate-500'}`} />
+                <span className="flex-1 font-bold text-sm">{item.label}</span>
                 {item.label === 'Mensajes' && unreadCount > 0 && (
                   <span className="flex h-5 min-w-[20px] items-center justify-center px-1 rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm group-hover:bg-red-600 transition-colors">
                     {unreadCount}
@@ -161,21 +188,51 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           })}
         </nav>
       </aside>
+      )}
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className={!showSidebar ? 'relative w-full overflow-hidden' : 'lg:pl-64'}>
+        {/* Full-Screen Watermark Background for Admins and Doctors */}
+        {(isAdmin || isDoctor || user.type === 'patient') && (
+          <div 
+            style={{ 
+              position: 'fixed', 
+              top: 0, 
+              left: 0, 
+              width: '100vw', 
+              height: '100vh', 
+              zIndex: -1, 
+              pointerEvents: 'none',
+              backgroundColor: '#f8fafc'
+            }}
+          >
+            <img 
+              src={isAdmin ? "/images/admin_bg.png" : isDoctor ? "/images/doctor_bg.png" : "/images/patient_bg.png"} 
+              alt="Background Art" 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover', 
+                opacity: 0.6,
+                filter: 'none'
+              }}
+            />
+          </div>
+        )}
         {/* Top bar */}
         <header className="sticky top-0 z-40 bg-white border-b">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="h-6 w-6" />
-              </Button>
+              {showSidebar && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="lg:hidden"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="h-6 w-6" />
+                </Button>
+              )}
 
               <div className="flex items-center gap-4 ml-auto">
                 <NotificationBell />

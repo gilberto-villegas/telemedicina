@@ -113,74 +113,74 @@ export default function AdminPatients() {
                 </Card>
 
                 {/* Table */}
-                <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
+                <div className="overflow-hidden">
+                    <div className="overflow-x-auto p-1">
+                        <table className="w-full border-separate border-spacing-y-3">
                             <thead>
-                                <tr className="bg-slate-50/50 border-b border-slate-100">
-                                    <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 tracking-[0.2em]">PACIENTE</th>
-                                    <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 tracking-[0.2em]">CONTACTO / CI</th>
-                                    <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 tracking-[0.2em]">ESTADO</th>
-                                    <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 tracking-[0.2em]">ACCIONES</th>
+                                <tr className="text-slate-400">
+                                    <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em] bg-white/30 backdrop-blur-md first:rounded-l-2xl last:rounded-r-2xl">PACIENTE</th>
+                                    <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em] bg-white/30 backdrop-blur-md">CONTACTO / CI</th>
+                                    <th className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em] bg-white/30 backdrop-blur-md">ESTADO</th>
+                                    <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-[0.2em] bg-white/30 backdrop-blur-md first:rounded-l-2xl last:rounded-r-2xl">ACCIONES</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody>
                                 {filteredPatients.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-8 py-20 text-center text-slate-400 tracking-widest font-black">NO SE ENCONTRARON PACIENTES</td>
+                                        <td colSpan={4} className="px-8 py-20 text-center text-slate-400 tracking-widest font-black bg-white/70 backdrop-blur-xl rounded-[2.5rem]">NO SE ENCONTRARON PACIENTES</td>
                                     </tr>
                                 ) : (
                                     filteredPatients.map(p => (
-                                        <tr key={p.id} className={`group hover:bg-slate-50/50 transition-colors ${p.is_blocked ? 'opacity-60' : ''}`}>
-                                            <td className="px-8 py-5">
+                                        <tr key={p.id} className={`group transition-all hover:scale-[1.01] hover:shadow-xl shadow-slate-900/5 ${p.is_blocked ? 'opacity-60' : ''}`}>
+                                            <td className="px-8 py-6 bg-white/70 backdrop-blur-xl first:rounded-l-[2.5rem] border-y border-l border-white/40">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 font-black">
+                                                    <div className="w-14 h-14 bg-emerald-50/50 rounded-2xl flex items-center justify-center text-emerald-600 font-black shadow-inner">
                                                         {p.avatar_url ? (
-                                                            <img src={p.avatar_url} alt="" className="w-full h-full object-cover rounded-xl" />
+                                                            <img src={p.avatar_url} alt="" className="w-full h-full object-cover rounded-2xl" />
                                                         ) : (
-                                                            <UserCircle className="w-6 h-6" />
+                                                            <UserCircle className="w-7 h-7" />
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <div className="font-black text-slate-900 text-sm tracking-tight">{p.first_name} {p.last_name}</div>
-                                                        <div className="text-[10px] text-slate-400 uppercase">IDENTIFICADOR: {p.id.slice(0,8)}</div>
+                                                        <div className="font-black text-slate-900 text-lg tracking-tight leading-tight">{p.first_name} {p.last_name}</div>
+                                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">ID PACIENTE: {p.id.slice(0,8)}</div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-5">
-                                                <div className="text-xs text-slate-900 font-bold">{p.email}</div>
-                                                <div className="text-[10px] text-slate-400">CI: {p.document_id} | TLF: {p.phone}</div>
+                                            <td className="px-8 py-6 bg-white/70 backdrop-blur-xl border-y border-white/40">
+                                                <div className="text-sm text-slate-900 font-bold">{p.email}</div>
+                                                <div className="text-[11px] text-slate-400 font-medium mt-1">CI: {p.document_id} | TLF: {p.phone}</div>
                                             </td>
-                                            <td className="px-8 py-5">
-                                                <div className="flex flex-col gap-1">
+                                            <td className="px-8 py-6 bg-white/70 backdrop-blur-xl border-y border-white/40">
+                                                <div className="flex flex-col gap-1.5">
                                                     {p.is_blocked ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-600 text-[10px] font-black rounded-lg w-fit">
-                                                            <XCircle className="w-3 h-3" /> BLOQUEADO
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50/80 text-rose-600 text-[10px] font-black rounded-lg w-fit border border-rose-100 uppercase tracking-widest">
+                                                            <XCircle className="w-3.5 h-3.5" /> BLOQUEADO
                                                         </span>
                                                     ) : (
-                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-lg w-fit">
-                                                            <ShieldCheck className="w-3 h-3" /> ACTIVO
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50/80 text-emerald-600 text-[10px] font-black rounded-lg w-fit border border-emerald-100 uppercase tracking-widest">
+                                                            <ShieldCheck className="w-3.5 h-3.5" /> ACTIVO
                                                         </span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-5 text-right">
+                                            <td className="px-8 py-6 bg-white/70 backdrop-blur-xl last:rounded-r-[2.5rem] border-y border-r border-white/40 text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl hover:bg-slate-100">
-                                                            <MoreHorizontal className="h-5 w-5 text-slate-400" />
+                                                        <Button variant="ghost" className="h-12 w-12 p-0 rounded-2xl hover:bg-slate-100/50 hover:scale-110 transition-all">
+                                                            <MoreHorizontal className="h-6 w-6 text-slate-400" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="w-56 rounded-2xl border-slate-100 shadow-xl uppercase font-black p-2">
-                                                        <DropdownMenuLabel className="text-[10px] tracking-widest text-slate-400">OPCIONES</DropdownMenuLabel>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => handleBlock(p.id, !!p.is_blocked)} className={`rounded-xl cursor-pointer ${p.is_blocked ? 'focus:bg-emerald-50 focus:text-emerald-600' : 'focus:bg-amber-50 focus:text-amber-600'}`}>
-                                                            {p.is_blocked ? <ShieldCheck className="w-4 h-4 mr-2" /> : <ShieldAlert className="w-4 h-4 mr-2" />}
-                                                            {p.is_blocked ? 'DESBLOQUEAR' : 'BLOQUEAR ACCESO'}
+                                                    <DropdownMenuContent align="end" className="w-60 rounded-[1.5rem] border-white/40 bg-white/90 backdrop-blur-xl shadow-2xl uppercase font-black p-3">
+                                                        <DropdownMenuLabel className="text-[10px] tracking-widest text-slate-400 mb-2">OPCIONES DE USUARIO</DropdownMenuLabel>
+                                                        <DropdownMenuSeparator className="bg-slate-100/50 mb-2" />
+                                                        <DropdownMenuItem onClick={() => handleBlock(p.id, !!p.is_blocked)} className={`rounded-xl cursor-pointer py-3 ${p.is_blocked ? 'focus:bg-emerald-50 focus:text-emerald-600' : 'focus:bg-amber-50 focus:text-amber-600'}`}>
+                                                            {p.is_blocked ? <ShieldCheck className="w-4 h-4 mr-3" /> : <ShieldAlert className="w-4 h-4 mr-3" />}
+                                                            {p.is_blocked ? 'RESTAURAR ACCESO' : 'BLOQUEAR ACCESO'}
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => handleDelete(p.id)} className="rounded-xl focus:bg-rose-50 focus:text-rose-600 cursor-pointer">
-                                                            <Trash2 className="w-4 h-4 mr-2" /> ELIMINAR PACIENTE
+                                                        <DropdownMenuSeparator className="bg-slate-100/50 my-2" />
+                                                        <DropdownMenuItem onClick={() => handleDelete(p.id)} className="rounded-xl focus:bg-rose-50 focus:text-rose-600 cursor-pointer py-3 text-rose-500">
+                                                            <Trash2 className="w-4 h-4 mr-3" /> ELIMINAR PACIENTE
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>

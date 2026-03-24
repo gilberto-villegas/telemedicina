@@ -102,10 +102,10 @@ export default function AvailabilityPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg backdrop-blur-md transition-all ${
               saved
-                ? 'bg-green-600 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-blue-500/20'
+                ? 'bg-emerald-600/90 text-white'
+                : 'bg-blue-600/90 hover:bg-blue-700 text-white hover:shadow-blue-500/20'
             } disabled:opacity-60`}
           >
             {saved ? (
@@ -129,7 +129,7 @@ export default function AvailabilityPage() {
               return sum + ((eh * 60 + em) - (sh * 60 + sm)) / 60;
             }, 0).toFixed(0)}h`, color: 'text-purple-600', bg: 'bg-purple-50' },
           ].map(({ label, value, color, bg }) => (
-            <div key={label} className={`${bg} rounded-2xl p-4 text-center`}>
+            <div key={label} className={`${bg}/70 backdrop-blur-xl rounded-2xl p-4 text-center border border-white/20 shadow-sm`}>
               <div className={`text-2xl font-black ${color}`}>{value}</div>
               <div className="text-xs text-gray-500 font-medium mt-1">{label}</div>
             </div>
@@ -144,8 +144,8 @@ export default function AvailabilityPage() {
             return (
               <div
                 key={dayIndex}
-                className={`bg-white rounded-2xl border transition-all duration-200 overflow-hidden ${
-                  isActive ? 'border-blue-200 shadow-sm' : 'border-gray-100'
+                className={`bg-white/70 backdrop-blur-xl rounded-2xl border transition-all duration-200 overflow-hidden ${
+                  isActive ? 'border-blue-200 shadow-lg' : 'border-gray-100'
                 }`}
               >
                 {/* Day header */}
@@ -179,7 +179,7 @@ export default function AvailabilityPage() {
                 {daySlots.length > 0 && (
                   <div className="px-5 py-4 space-y-2">
                     {daySlots.map((slot) => (
-                      <div key={slot._index} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                      <div key={slot._index} className="flex items-center gap-3 bg-white/50 backdrop-blur-sm rounded-xl p-3 border border-white/20">
                         <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
                         <input
                           type="time"

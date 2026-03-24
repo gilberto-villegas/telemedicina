@@ -139,10 +139,12 @@ class AuthController extends Controller
             'bank_account_holder' => 'sometimes|string|max:255|nullable',
             'bank_document_id' => 'sometimes|string|max:255|nullable',
             'bank_account_type' => 'sometimes|string|max:255|nullable',
+            'bank_id' => 'sometimes|exists:banks,id|nullable',
             // Pago Móvil
             'pago_movil_phone' => 'sometimes|string|max:255|nullable',
             'pago_movil_document_id' => 'sometimes|string|max:255|nullable',
             'pago_movil_bank' => 'sometimes|string|max:255|nullable',
+            'pago_movil_bank_id' => 'sometimes|exists:banks,id|nullable',
             // Zelle
             'zelle_email' => 'sometimes|email|max:255|nullable',
             'zelle_holder' => 'sometimes|string|max:255|nullable',
@@ -160,8 +162,8 @@ class AuthController extends Controller
             'first_name', 'last_name', 'phone', 'avatar_url',
             'birth_date', 'blood_type', 'allergies',
             'specialty', 'specialty_id', 'mpps_number', 'consultation_price_usd',
-            'bank_name', 'bank_account_number', 'bank_account_holder', 'bank_document_id', 'bank_account_type',
-            'pago_movil_phone', 'pago_movil_document_id', 'pago_movil_bank',
+            'bank_name', 'bank_account_number', 'bank_account_holder', 'bank_document_id', 'bank_account_type', 'bank_id',
+            'pago_movil_phone', 'pago_movil_document_id', 'pago_movil_bank', 'pago_movil_bank_id',
             'zelle_email', 'zelle_holder', 'digital_signature'
         ]));
 
