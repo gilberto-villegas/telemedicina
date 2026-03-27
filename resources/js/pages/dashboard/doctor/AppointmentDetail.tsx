@@ -12,7 +12,6 @@ import {
   Shield, ChevronRight, History, Printer, MessageSquare, DollarSign,
   FileSearch, DownloadCloud, Download
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { BodyMap } from '@/components/medical/BodyMap';
 
 interface AppointmentData {
@@ -343,9 +342,17 @@ export default function DoctorAppointmentDetailPage() {
 
   const printFullReport = () => {
     if (!appointment) return;
-    let body = buildHeaderHtml(appointment, 'Informe Médico de Consulta');
+    let body = buildHeaderHtml(appointment, 'Informe Médico Completo');
     if (appointment.medical_record) body += buildMedicalRecordHtml(appointment.medical_record);
     if (appointment.prescription) body += '<div style="margin: 40px 0; border-top: 1px dashed #e2e8f0;"></div>' + buildPrescriptionHtml(appointment.prescription);
+    body += buildFooterHtml(appointment.doctor);
+    openPrintWindow(body);
+  };
+
+  const printPrescription = () => {
+    if (!appointment || !appointment.prescription) return;
+    let body = buildHeaderHtml(appointment, 'Récipe Médico / Prescripción');
+    body += buildPrescriptionHtml(appointment.prescription);
     body += buildFooterHtml(appointment.doctor);
     openPrintWindow(body);
   };
@@ -522,6 +529,15 @@ export default function DoctorAppointmentDetailPage() {
                     <span>Completar Informe</span>
                   </button>
                 </Link>
+              )}
+              {statusName === 'completed' && appointment.prescription && (
+                <button
+                  onClick={printPrescription}
+                  className="flex items-center gap-2 px-6 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200 active:scale-95 group"
+                >
+                  <Pill className="h-5 w-5 transition-transform group-hover:scale-110" />
+                  <span>Imprimir Récipe</span>
+                </button>
               )}
               {statusName === 'completed' && appointment.medical_record && (
                 <button

@@ -20,7 +20,8 @@ import {
   MessageSquare,
   Clock,
   ShieldCheck,
-  BookMarked
+  BookMarked,
+  Wallet
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { AIAssistant } from '@/components/dashboard/AIAssistant';
@@ -43,9 +44,9 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const pathname = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { unreadCount } = useNotificationsContext();
-  const isAdmin = user.type.toLowerCase() === 'admin';
-  const isDoctor = user.type.toLowerCase() === 'doctor';
-  const showSidebar = !isAdmin && !isDoctor;
+  const isAdmin = user?.type?.toLowerCase() === 'admin';
+  const isDoctor = user?.type?.toLowerCase() === 'doctor';
+  const showSidebar = true; // El sidebar debe mostrarse para todos los roles registrados
 
   const handleLogout = () => {
     authService.logout();
@@ -54,10 +55,10 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
   useEffect(() => {
     // Si es doctor y no tiene avatar_url, y no está ya en settings, redirigir
-    if (user.type === 'doctor' && !user.avatar_url && !pathname.pathname.includes('/settings')) {
+    if (user?.type === 'doctor' && !user?.avatar_url && !pathname.pathname.includes('/settings')) {
       navigate(`/dashboard/doctor/settings`, { replace: true });
     }
-  }, [user.avatar_url, user.type, pathname.pathname, navigate]);
+  }, [user?.avatar_url, user?.type, pathname.pathname, navigate]);
 
   const getNavItems = (): NavItem[] => {
     const baseItems: NavItem[] = [
@@ -77,12 +78,13 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       ];
     }
 
-    if (user.type === 'doctor') {
+    if (user.type.toLowerCase() === 'doctor') {
       return [
         ...baseItems,
         { href: `/dashboard/${user.type}/appointments`, icon: Calendar, label: 'Agenda', id: 'nav-doctor-agenda' },
         { href: `/dashboard/${user.type}/patients`, icon: Users, label: 'Pacientes', id: 'nav-doctor-patients' },
         { href: `/dashboard/${user.type}/payments`, icon: CreditCard, label: 'Validar Pagos', id: 'nav-doctor-payments' },
+        { href: `/dashboard/${user.type}/wallet`, icon: Wallet, label: 'Mis Ganancias', id: 'nav-doctor-wallet' },
         { href: `/dashboard/${user.type}/availability`, icon: Clock, label: 'Disponibilidad', id: 'nav-doctor-availability' },
         { href: `/dashboard/${user.type}/chat`, icon: MessageSquare, label: 'Mensajes', id: 'nav-doctor-chat' },
         { href: `/dashboard/${user.type}/settings`, icon: Settings, label: 'Configuración', id: 'nav-doctor-settings' },
@@ -95,6 +97,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         { href: `/dashboard/${user.type}/doctors`, icon: Stethoscope, label: 'Médicos', id: 'nav-admin-doctors' },
         { href: `/dashboard/${user.type}/patients`, icon: Users, label: 'Pacientes', id: 'nav-admin-patients' },
         { href: `/dashboard/${user.type}/specialties`, icon: BookMarked, label: 'Especialidades', id: 'nav-admin-specialties' },
+        { href: `/dashboard/${user.type}/wallet-requests`, icon: Wallet, label: 'Pagos a Médicos', id: 'nav-admin-wallet' },
         { href: `/dashboard/${user.type}/admins`, icon: ShieldCheck, label: 'Administradores', id: 'nav-admin-admins' },
         { href: `/dashboard/${user.type}/settings`, icon: Settings, label: 'Configuración', id: 'nav-admin-settings' },
       ];
@@ -150,7 +153,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       {/* Desktop sidebar */}
       {showSidebar && (
         <aside 
-          className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:border-r lg:border-white/5"
+          className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:z-50 lg:border-r lg:border-white/5"
           style={{ backgroundColor: '#0f172a' }}
         >
           {/* ... sidebar content remains same ... */}

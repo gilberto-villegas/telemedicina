@@ -315,10 +315,20 @@ class AppointmentController extends Controller
             ], 400);
         }
 
+        $platformFeePercentage = floatval(\App\Models\Setting::where('key', 'platform_fee_percent')->value('value') ?? 0);
+        $platformFeeAmountUsd = $appointment->price_usd * ($platformFeePercentage / 100);
+        $doctorEarningsUsd = $appointment->price_usd - $platformFeeAmountUsd;
+        $doctorEarningsVes = $doctorEarningsUsd * $appointment->exchange_rate;
+
         // Actualizar estado y tiempo de finalización
         $appointment->update([
             'status_id' => Status::where('name', 'completed')->first()->id,
             'end_time' => now(),
+            'platform_fee_percentage' => $platformFeePercentage,
+            'platform_fee_amount_usd' => $platformFeeAmountUsd,
+            'doctor_earnings_usd' => $doctorEarningsUsd,
+            'doctor_earnings_ves' => $doctorEarningsVes,
+            'doctor_payment_status' => 'pending',
         ]);
 
         return response()->json([

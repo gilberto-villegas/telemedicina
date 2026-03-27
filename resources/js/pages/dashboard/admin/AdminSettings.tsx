@@ -15,7 +15,9 @@ import {
     Mail,
     Phone,
     Wallet,
-    Sparkles
+    Sparkles,
+    Settings as SettingsIcon,
+    Percent
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -47,6 +49,49 @@ interface Bank {
   code: string;
 }
 
+const InputField = ({ label, icon: Icon, value, onChange, placeholder, type = "text", required = false }: any) => (
+  <div className="space-y-2 group">
+    <label className="text-[10px] font-black text-slate-400 ml-2 tracking-widest uppercase">{label}</label>
+    <div className="relative">
+      {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-blue-500 transition-colors" />}
+      <input 
+        required={required}
+        type={type}
+        placeholder={placeholder}
+        className={`w-full h-14 ${Icon ? 'pl-12' : 'px-4'} pr-4 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all text-sm font-bold placeholder:text-slate-300 uppercase tracking-tighter`}
+        value={value}
+        onChange={onChange}
+      />
+    </div>
+  </div>
+);
+
+const BankSelect = ({ label, value, onChange, placeholder, banks = [] }: any) => (
+  <div className="space-y-2 group">
+    <label className="text-[10px] font-black text-slate-400 ml-2 tracking-widest uppercase">{label}</label>
+    <div className="relative">
+      <select 
+        className="w-full h-14 px-4 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all text-sm font-bold appearance-none uppercase tracking-tighter"
+        value={value}
+        onChange={(e) => {
+          const bank = banks.find((b: any) => b.id === e.target.value);
+          onChange(e.target.value, bank?.name || '');
+        }}
+      >
+        <option value="">{placeholder || 'SELECCIONE BANCO'}</option>
+        {banks.map((b: any) => (
+          <option key={b.id} value={b.id}>{b.code} - {b.name}</option>
+        ))}
+      </select>
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+  </div>
+);
+
 export default function AdminSettings() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -61,6 +106,11 @@ export default function AdminSettings() {
   });
   
   const [banks, setBanks] = useState<Bank[]>([]);
+  
+  const [systemSettings, setSystemSettings] = useState({ platform_fee_percent: '0' });
+  const [bcvRate, setBcvRate] = useState<string>('Cargando...');
+  const [savingSystem, setSavingSystem] = useState(false);
+  const [systemSaved, setSystemSaved] = useState(false);
   
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -100,6 +150,8 @@ export default function AdminSettings() {
     }).finally(() => setLoading(false));
 
     api.get('/banks').then(r => setBanks(r.data)).catch(() => {});
+    api.get('/admin/settings').then(r => setSystemSettings(r.data)).catch(() => {});
+    api.get('/exchange-rate').then(r => setBcvRate(Number(r.data.rate).toFixed(2))).catch(() => setBcvRate('Error al cargar'));
   }, [navigate]);
 
   const handleInputChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -142,55 +194,26 @@ export default function AdminSettings() {
     }
   };
 
+  const handleSystemSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSystem(true);
+    try {
+      await api.post('/admin/settings', systemSettings);
+      setSystemSaved(true);
+      setTimeout(() => setSystemSaved(false), 3000);
+    } catch (error: any) {
+        alert(error.response?.data?.message || 'Error al guardar configuración global');
+    } finally {
+        setSavingSystem(false);
+    }
+  };
+
   if (loading || !user) return (
     <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
             <p className="text-slate-400 font-black tracking-widest uppercase text-xs">Preparando Experiencia Premium...</p>
         </div>
-    </div>
-  );
-
-  const InputField = ({ label, icon: Icon, value, onChange, placeholder, type = "text", required = false }: any) => (
-    <div className="space-y-2 group">
-      <label className="text-[10px] font-black text-slate-400 ml-2 tracking-widest uppercase">{label}</label>
-      <div className="relative">
-        {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-blue-500 transition-colors" />}
-        <input 
-          required={required}
-          type={type}
-          placeholder={placeholder}
-          className={`w-full h-14 ${Icon ? 'pl-12' : 'px-4'} pr-4 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all text-sm font-bold placeholder:text-slate-300 uppercase tracking-tighter`}
-          value={value}
-          onChange={onChange}
-        />
-      </div>
-    </div>
-  );
-
-  const BankSelect = ({ label, value, onChange, placeholder }: any) => (
-    <div className="space-y-2 group">
-      <label className="text-[10px] font-black text-slate-400 ml-2 tracking-widest uppercase">{label}</label>
-      <div className="relative">
-        <select 
-          className="w-full h-14 px-4 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all text-sm font-bold appearance-none uppercase tracking-tighter"
-          value={value}
-          onChange={(e) => {
-            const bank = banks.find(b => b.id === e.target.value);
-            onChange(e.target.value, bank?.name || '');
-          }}
-        >
-          <option value="">{placeholder || 'SELECCIONE BANCO'}</option>
-          {banks.map(b => (
-            <option key={b.id} value={b.id}>{b.code} - {b.name}</option>
-          ))}
-        </select>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </div>
     </div>
   );
 
@@ -255,7 +278,7 @@ export default function AdminSettings() {
             </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             
             {/* Sidebar Column */}
             <div className="lg:col-span-4 space-y-10">
@@ -304,6 +327,48 @@ export default function AdminSettings() {
                         Configura tus métodos de pago para recibir recaudaciones de manera segura.
                     </p>
                 </div>
+
+                <Card className="rounded-[2.5rem] border-none bg-white shadow-2xl shadow-slate-200 overflow-hidden">
+                    <div className="bg-amber-50 p-8 border-b border-amber-100 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-white rounded-2xl shadow-sm">
+                                <SettingsIcon className="w-6 h-6 text-amber-600" />
+                            </div>
+                            <div>
+                                <h2 className="font-black text-amber-900 tracking-tighter leading-tight uppercase">Sistema Global</h2>
+                                <p className="text-[10px] text-amber-600 font-bold tracking-widest uppercase">Comisiones y Tasas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <CardContent className="p-8 space-y-6">
+                        <form onSubmit={handleSystemSubmit} className="space-y-6">
+                            <InputField 
+                                label="Comisión de Plataforma (%)" icon={Percent} 
+                                value={systemSettings.platform_fee_percent} onChange={(e: any) => setSystemSettings(p => ({...p, platform_fee_percent: e.target.value}))} 
+                                type="number" required 
+                            />
+                            
+                            <div className="space-y-2 group">
+                              <label className="text-[10px] font-black text-slate-400 ml-2 tracking-widest uppercase">Tasa de Cambio (VES/USD)</label>
+                              <div className="w-full h-14 px-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-sm font-bold text-slate-600">
+                                <span>{bcvRate} Bs.</span>
+                                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full uppercase tracking-widest">Desde BCV</span>
+                              </div>
+                            </div>
+                            
+                            <Button 
+                                type="submit"
+                                disabled={savingSystem}
+                                className={`w-full h-12 rounded-xl text-sm font-black tracking-widest transition-all active:scale-95 shadow-lg border-none ${
+                                    systemSaved ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-amber-500 text-white hover:bg-amber-600'
+                                }`}
+                            >
+                                {systemSaved ? <CheckCircle className="w-5 h-5 mr-3" /> : savingSystem ? <Loader2 className="w-5 h-5 mr-3 animate-spin" /> : <Save className="w-5 h-5 mr-3" />}
+                                {systemSaved ? 'GUARDADO' : savingSystem ? 'GUARDANDO...' : 'ACTUALIZAR SISTEMA'}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Main Content Column */}
@@ -337,6 +402,7 @@ export default function AdminSettings() {
                                 <BankSelect 
                                     label="Banco" 
                                     value={formData.bank_id} 
+                                    banks={banks}
                                     onChange={(id: string, name: string) => setFormData(p => ({...p, bank_id: id, bank_name: name}))} 
                                 />
                                 <InputField label="Cuenta Bancaria (20 dígitos)" value={formData.bank_account_number} onChange={handleInputChange('bank_account_number')} />
@@ -362,6 +428,7 @@ export default function AdminSettings() {
                                     <BankSelect 
                                         label="Banco" 
                                         value={formData.pago_movil_bank_id} 
+                                        banks={banks}
                                         onChange={(id: string, name: string) => setFormData(p => ({...p, pago_movil_bank_id: id, pago_movil_bank: name}))} 
                                     />
                                     <InputField label="Teléfono Receptor" value={formData.pago_movil_phone} onChange={handleInputChange('pago_movil_phone')} />
@@ -392,7 +459,7 @@ export default function AdminSettings() {
                     </CardContent>
                 </Card>
             </div>
-        </form>
+        </div>
         <input 
             type="file" 
             ref={fileInputRef} 

@@ -270,7 +270,8 @@ export default function AdminPayments() {
                         <div className="font-black text-slate-900 uppercase text-xs">{payment.user.first_name} {payment.user.last_name}</div>
                       </td>
                       <td className="px-8 py-6">
-                        <span className="font-black text-blue-600">${payment.amount_usd}</span>
+                        <div className="font-black text-blue-600">${payment.amount_usd}</div>
+                        <div className="text-[10px] font-bold text-slate-400 tracking-tight">~ {Number(payment.amount_ves).toLocaleString('es-VE')} BS</div>
                       </td>
                       <td className="px-8 py-6 text-right">
                         <StatusPill name={payment.status.name} label={payment.status.label} />
@@ -357,6 +358,7 @@ export default function AdminPayments() {
                       <div className="space-y-1">
                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Monto</p>
                          <p className="text-lg font-black text-emerald-600">${selectedPayment.amount_usd} USD</p>
+                         <p className="text-xs font-bold text-slate-400 tracking-tight">~ {Number(selectedPayment.amount_ves).toLocaleString('es-VE')} BS</p>
                       </div>
                    </div>
                 </div>

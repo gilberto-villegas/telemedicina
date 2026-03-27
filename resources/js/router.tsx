@@ -15,6 +15,7 @@ import DoctorAvailability from './pages/dashboard/doctor/Availability';
 import DoctorSettings from './pages/dashboard/doctor/Settings';
 import DoctorChat from './pages/dashboard/doctor/Chat';
 import DoctorPaymentsPage from './pages/dashboard/doctor/Payments';
+import DoctorWallet from './pages/dashboard/doctor/Wallet';
 
 import PatientAppointments from './pages/dashboard/patient/Appointments';
 import PatientDoctors from './pages/dashboard/patient/Doctors';
@@ -35,6 +36,7 @@ import AdminAdmins from './pages/dashboard/admin/Admins';
 import AdminBanks from './pages/dashboard/admin/AdminBanks';
 import AdminPayments from './pages/dashboard/admin/AdminPayments';
 import AdminSettings from './pages/dashboard/admin/AdminSettings';
+import AdminWallet from './pages/dashboard/admin/AdminWallet';
 
 import VideoCall from './pages/dashboard/VideoCall';
 import Notifications from './pages/dashboard/Notifications';
@@ -60,6 +62,7 @@ export default function AppRoutes() {
                     <Route path="patients/:id" element={<DoctorPatientDetail />} />
                     <Route path="availability" element={<DoctorAvailability />} />
                     <Route path="payments" element={<DoctorPaymentsPage />} />
+                    <Route path="wallet" element={<DoctorWallet />} />
                     <Route path="settings" element={<DoctorSettings />} />
                     <Route path="appointments/:id/video" element={<VideoCall />} />
                     <Route path="chat" element={<DoctorChat />} />
@@ -90,6 +93,7 @@ export default function AppRoutes() {
                     <Route path="admins" element={<AdminAdmins />} />
                     <Route path="banks" element={<AdminBanks />} />
                     <Route path="payments" element={<AdminPayments />} />
+                    <Route path="wallet-requests" element={<AdminWallet />} />
                     <Route path="settings" element={<AdminSettings />} />
                 </Route>
 
