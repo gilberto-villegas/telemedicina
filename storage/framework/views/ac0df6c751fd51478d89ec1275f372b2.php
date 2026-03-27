@@ -9,15 +9,17 @@
         .content { padding: 40px; }
         .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0; }
         .info-card { background: #f8fafc; border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px dashed #cbd5e1; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
-        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .label { font-weight: 700; color: #64748b; font-size: 11px; text-transform: uppercase; }
-        .value { font-weight: 700; color: #1e293b; text-align: right; }
+        .info-table { width: 100%; border-collapse: collapse; }
+        .info-table td { padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+        .info-table tr:last-child td { border-bottom: none; }
+        .label { font-weight: 700; color: #64748b; font-size: 11px; text-transform: uppercase; width: 40%; }
+        .value { font-weight: 700; color: #1e293b; text-align: right; width: 60%; }
         .status-pill { display: inline-block; padding: 5px 15px; background: #dcfce7; color: #166534; border-radius: 20px; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 20px; }
         .button { display: inline-block; width: 100%; box-sizing: border-box; padding: 16px; background: #2563eb; color: white; text-align: center; text-decoration: none; border-radius: 10px; font-weight: 800; font-size: 14px; margin-top: 25px; text-transform: uppercase; }
-        .step-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px; }
-        .step-num { min-width: 24px; height: 24px; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; font-weight: 700; }
-        .step-text { font-size: 13px; color: #475569; }
+        .step-table { width: 100%; margin-top: 15px; }
+        .step-table td { vertical-align: top; padding-bottom: 15px; }
+        .step-num { width: 24px; height: 24px; background: #2563eb; color: #ffffff; border-radius: 50%; font-size: 12px; font-weight: 700; text-align: center; line-height: 24px; display: block; }
+        .step-text { padding-left: 12px; font-size: 13px; color: #475569; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -33,27 +35,31 @@
             <p>Hemos recibido correctamente los datos de tu pago. Nuestro equipo administrativo está validando la transacción en este momento para activar tu cita.</p>
 
             <div class="info-card">
-                <div class="info-row"><span class="label">Referencia</span><span class="value">#<?php echo e($reference); ?></span></div>
-                <div class="info-row"><span class="label">Monto Pagado</span><span class="value">$<?php echo e($amount_usd); ?> USD</span></div>
-                <div class="info-row"><span class="label">Conversión</span><span class="value">≈ <?php echo e($amount_ves); ?> VES</span></div>
-                <div class="info-row"><span class="label">Doctor</span><span class="value">Dr. <?php echo e($doctor_name); ?></span></div>
-                <div class="info-row"><span class="label">Cita</span><span class="value"><?php echo e($appointment_date); ?> a las <?php echo e($appointment_time); ?></span></div>
+                <table class="info-table">
+                    <tr><td class="label">Referencia</td><td class="value">#<?php echo e($reference); ?></td></tr>
+                    <tr><td class="label">Monto Pagado</td><td class="value">$<?php echo e($amount_usd); ?> USD</td></tr>
+                    <tr><td class="label">Conversión</td><td class="value">≈ <?php echo e($amount_ves); ?> VES</td></tr>
+                    <tr><td class="label">Doctor</td><td class="value">Dr. <?php echo e($doctor_name); ?></td></tr>
+                    <tr><td class="label">Cita</td><td class="value"><?php echo e($appointment_date); ?> a las <?php echo e($appointment_time); ?></td></tr>
+                </table>
             </div>
 
             <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: #2563eb; margin-top: 30px;">Próximos Pasos:</h3>
             
-            <div class="step-item">
-                <div class="step-num">1</div>
-                <div class="step-text"><strong>Validación Administrativa:</strong> Verificaremos tu comprobante en un plazo máximo de 1 hora (dentro de horario laboral).</div>
-            </div>
-            <div class="step-item">
-                <div class="step-num">2</div>
-                <div class="step-text"><strong>Confirmación Final:</strong> Recibirás un nuevo correo confirmando que tu cita ha sido <strong>Activada</strong>.</div>
-            </div>
-            <div class="step-item">
-                <div class="step-num">3</div>
-                <div class="step-text"><strong>Agenda tus síntomas:</strong> Si aún no lo has hecho, completa el cuestionario de síntomas en tu panel.</div>
-            </div>
+            <table class="step-table">
+                <tr>
+                    <td><div class="step-num">1</div></td>
+                    <td class="step-text"><strong>Validación Administrativa:</strong> Verificaremos tu comprobante en un plazo máximo de 1 hora (dentro de horario laboral).</td>
+                </tr>
+                <tr>
+                    <td><div class="step-num">2</div></td>
+                    <td class="step-text"><strong>Confirmación Final:</strong> Recibirás un nuevo correo confirmando que tu cita ha sido <strong>Activada</strong>.</td>
+                </tr>
+                <tr>
+                    <td><div class="step-num">3</div></td>
+                    <td class="step-text"><strong>Agenda tus síntomas:</strong> Si aún no lo has hecho, completa el cuestionario de síntomas en tu panel.</td>
+                </tr>
+            </table>
 
             <a href="<?php echo e($appointments_url); ?>" class="button">IR A MIS CITAS</a>
         </div>

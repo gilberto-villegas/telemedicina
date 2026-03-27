@@ -148,6 +148,11 @@ class User extends Authenticatable
         return $this->hasMany(MedicalQuestion::class, 'doctor_id');
     }
 
+    public function withdrawalRequests()
+    {
+        return $this->hasMany(WithdrawalRequest::class, 'doctor_id');
+    }
+
     // Scopes
     public function scopeDoctors($query)
     {

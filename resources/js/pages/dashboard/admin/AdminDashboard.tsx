@@ -14,7 +14,8 @@ import {
     Activity,
     Clock,
     Building2,
-    CreditCard
+    CreditCard,
+    Wallet
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
@@ -198,6 +199,13 @@ export default function AdminDashboard() {
                                 label="Validar Pagos"
                                 sub="Verificar transacciones del sistema"
                                 color="bg-amber-600"
+                            />
+                            <AdminAction 
+                                to="/dashboard/admin/wallet-requests"
+                                icon={Wallet}
+                                label="Pagos a Médicos"
+                                sub="Gestionar retiros de doctores"
+                                color="bg-blue-600"
                             />
                             <AdminAction 
                                 to="/dashboard/admin/settings"

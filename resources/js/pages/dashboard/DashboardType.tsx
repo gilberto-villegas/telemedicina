@@ -14,6 +14,9 @@ import {
     Users,
     ChevronRight,
     Settings,
+    Wallet,
+    Activity,
+    Building2
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -409,6 +412,13 @@ export default function DashboardType() {
                                     color="bg-indigo-600"
                                 />
                                 <QuickActionButton 
+                                    to={`/dashboard/${user.type}/wallet`}
+                                    icon={Wallet}
+                                    label="Mi Billetera"
+                                    sub="Ver ingresos y cobrar"
+                                    color="bg-amber-500"
+                                />
+                                <QuickActionButton 
                                     to={`/dashboard/${user.type}/patients`}
                                     icon={Users}
                                     label="Mis Pacientes"
@@ -418,8 +428,8 @@ export default function DashboardType() {
                                 <QuickActionButton 
                                     to={`/dashboard/${user.type}/settings`}
                                     icon={Settings}
-                                    label="Mi Tarifa y Cobros"
-                                    sub="Control financiero y perfil"
+                                    label="Mi Perfil"
+                                    sub="Control de tarifa y datos"
                                     color="bg-rose-600"
                                 />
                             </div>

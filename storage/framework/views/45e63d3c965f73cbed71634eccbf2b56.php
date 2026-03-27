@@ -9,10 +9,11 @@
         .content { padding: 40px; }
         .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0; }
         .info-card { background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid #e2e8f0; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; }
-        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .label { font-weight: 700; color: #475569; font-size: 12px; text-transform: uppercase; }
-        .value { font-weight: 600; color: #1e293b; text-align: right; }
+        .info-table { width: 100%; border-collapse: collapse; }
+        .info-table td { padding: 10px 0; border-bottom: 1px solid #cbd5e1; }
+        .info-table tr:last-child td { border-bottom: none; }
+        .label { font-weight: 700; color: #475569; font-size: 12px; text-transform: uppercase; width: 40%; }
+        .value { font-weight: 600; color: #1e293b; text-align: right; width: 60%; }
         .status-badge { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-top: 10px; }
         .status-pending { background: #fef3c7; color: #92400e; }
         .button { display: inline-block; padding: 14px 28px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 14px; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
@@ -29,22 +30,12 @@
             <p>Se ha registrado un nuevo intento de pago para una cita médica. La misma se encuentra actualmente en <strong>estatus pendiente</strong> de validación administrativa.</p>
             
             <div class="info-card">
-                <div class="info-row">
-                    <span class="label">Paciente</span>
-                    <span class="value"><?php echo e($patient_name); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Patología / Motivo</span>
-                    <span class="value"><?php echo e($reason); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Fecha de Cita</span>
-                    <span class="value"><?php echo e($appointment_date); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Hora de Cita</span>
-                    <span class="value"><?php echo e($appointment_time); ?></span>
-                </div>
+                <table class="info-table">
+                    <tr><td class="label">Paciente</td><td class="value"><?php echo e($patient_name); ?></td></tr>
+                    <tr><td class="label">Patología / Motivo</td><td class="value"><?php echo e($reason); ?></td></tr>
+                    <tr><td class="label">Fecha de Cita</td><td class="value"><?php echo e($appointment_date); ?></td></tr>
+                    <tr><td class="label">Hora de Cita</td><td class="value"><?php echo e($appointment_time); ?></td></tr>
+                </table>
             </div>
 
             <p style="font-size: 14px; color: #64748b;">

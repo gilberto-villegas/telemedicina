@@ -32,6 +32,12 @@ class Appointment extends Model
         'medical_record_id',
         'prescription_id',
         'payment_id',
+        'platform_fee_percentage',
+        'platform_fee_amount_usd',
+        'doctor_earnings_usd',
+        'doctor_earnings_ves',
+        'doctor_payment_status',
+        'withdrawal_request_id',
     ];
 
     protected function casts(): array
@@ -43,6 +49,10 @@ class Appointment extends Model
             'price_ves' => 'decimal:2',
             'exchange_rate' => 'decimal:4',
             'video_duration' => 'integer',
+            'platform_fee_percentage' => 'decimal:2',
+            'platform_fee_amount_usd' => 'decimal:2',
+            'doctor_earnings_usd' => 'decimal:2',
+            'doctor_earnings_ves' => 'decimal:2',
         ];
     }
 
@@ -75,6 +85,11 @@ class Appointment extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class, 'appointment_id');
+    }
+
+    public function withdrawalRequest(): BelongsTo
+    {
+        return $this->belongsTo(WithdrawalRequest::class, 'withdrawal_request_id');
     }
 
     public function medicalResponses()

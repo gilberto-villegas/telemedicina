@@ -27,7 +27,7 @@ Route::get('/up', function () {
 Route::get('/specialties', [App\Http\Controllers\SpecialtyController::class, 'index']);
 
 // Autenticación pública
-Route::prefix('auth')->group(function () {
+Route::group(['prefix' => 'auth'], function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -95,6 +95,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/invoices', [PaymentController::class, 'invoices']);
         Route::get('/doctor', [PaymentController::class, 'doctorPayments']);
         Route::post('/{id}/verify', [PaymentController::class, 'verify']);
+    });
+
+    // Billetera del Doctor
+    Route::prefix('wallet')->group(function () {
+        Route::get('/balance', [\App\Http\Controllers\WalletController::class, 'balance']);
+        Route::post('/request-withdrawal', [\App\Http\Controllers\WalletController::class, 'requestWithdrawal']);
+        Route::get('/history', [\App\Http\Controllers\WalletController::class, 'history']);
     });
 
     Route::get('/exchange-rate', function (\App\Services\BcvService $bcvService) {
@@ -183,6 +190,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/banks/{bank}', [App\Http\Controllers\BankController::class, 'update']);
         Route::delete('/banks/{bank}', [App\Http\Controllers\BankController::class, 'destroy']);
         Route::get('/payments', [PaymentController::class, 'adminPayments']);
+
+        // Billetera y Pagos a Médicos
+        Route::get('/wallet-requests', [\App\Http\Controllers\WalletController::class, 'getAdminRequests']);
+        Route::post('/wallet-requests/{id}/approve', [\App\Http\Controllers\WalletController::class, 'approveRequest']);
+        
+        // Configuraciones
+        Route::get('/settings', function () {
+            // Transformar en array para fácil acceso {key: value} en el frontend
+            $settings = \App\Models\Setting::all()->pluck('value', 'key');
+            return response()->json($settings);
+        });
+        Route::post('/settings', function (\Illuminate\Http\Request $request) {
+            $data = $request->all();
+            foreach ($data as $key => $value) {
+                \App\Models\Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+            }
+            return response()->json(['message' => 'Settings updated']);
+        });
     });
 
     // Bancos (Acceso general para selects)

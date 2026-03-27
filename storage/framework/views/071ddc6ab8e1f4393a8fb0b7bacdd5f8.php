@@ -9,10 +9,11 @@
         .content { padding: 40px; }
         .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 11px; border-top: 1px solid #e2e8f0; }
         .info-card { background: #ffffff; border-radius: 12px; padding: 20px; margin: 20px 0; border: 2px solid #f1f5f9; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
-        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .label { font-weight: 700; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .value { font-weight: 800; color: #0f172a; text-align: right; font-size: 14px; }
+        .info-table { width: 100%; border-collapse: collapse; }
+        .info-table td { padding: 10px 0; border-bottom: 1px dashed #e2e8f0; }
+        .info-table tr:last-child td { border-bottom: none; }
+        .label { font-weight: 700; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; width: 45%; }
+        .value { font-weight: 800; color: #0f172a; text-align: right; font-size: 14px; width: 55%; }
         .financial-strip { background: #2563eb; color: white; border-radius: 8px; padding: 15px; margin-top: 10px; text-align: center; }
         .financial-val { display: block; font-size: 22px; font-weight: 900; }
         .financial-sub { font-size: 10px; font-weight: 700; opacity: 0.8; text-transform: uppercase; }
@@ -37,26 +38,13 @@
             </div>
 
             <div class="info-card">
-                <div class="info-row">
-                    <span class="label">Método de Pago</span>
-                    <span class="value"><?php echo e($method); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Referencia #</span>
-                    <span class="value"><?php echo e($reference); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Fecha del Pago</span>
-                    <span class="value"><?php echo e($payment_date); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Teléfono Origen</span>
-                    <span class="value"><?php echo e($payment_phone); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Tasa BCV del día</span>
-                    <span class="value"><?php echo e($exchange_rate); ?> VES</span>
-                </div>
+                <table class="info-table">
+                    <tr><td class="label">Método de Pago</td><td class="value"><?php echo e($method); ?></td></tr>
+                    <tr><td class="label">Referencia #</td><td class="value">#<?php echo e($reference); ?></td></tr>
+                    <tr><td class="label">Fecha del Pago</td><td class="value"><?php echo e($payment_date); ?></td></tr>
+                    <tr><td class="label">Teléfono Origen</td><td class="value"><?php echo e($payment_phone); ?></td></tr>
+                    <tr><td class="label">Tasa BCV del día</td><td class="value"><?php echo e($exchange_rate); ?> VES</td></tr>
+                </table>
             </div>
 
             <div class="financial-strip">
