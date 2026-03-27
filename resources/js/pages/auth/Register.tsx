@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import {
   Stethoscope, Loader2, User, Mail, Phone, CreditCard,
   Lock, Calendar, Award, Eye, EyeOff, CheckCircle, ArrowRight,
-  BookOpen, Video, Globe, HeartPulse, Shield,
+  BookOpen, Video, Globe, HeartPulse, Shield, AlertCircle
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -29,10 +29,12 @@ export default function RegisterPage() {
   });
   const [specialties, setSpecialties] = useState<{id: string, name: string}[]>([]);
   const [error, setError] = useState('');
+  const [mppsError, setMppsError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const type = searchParams.get('type');
+    let type = searchParams.get('type');
+    if (type === 'medico') type = 'doctor';
     if (type) setFormData(prev => ({ ...prev, type }));
     loadSpecialties();
   }, [searchParams]);
@@ -61,7 +63,17 @@ export default function RegisterPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'mpps_number') {
+      const pattern = /^(MPPS-)?\d{5,8}$/i;
+      if (value && !pattern.test(value)) {
+        setMppsError('Formato inválido (Ej: MPPS-123456)');
+      } else {
+        setMppsError('');
+      }
+    }
   };
 
   const features = [
@@ -218,20 +230,26 @@ export default function RegisterPage() {
                     {[
                       { value: 'patient', label: '👤 Paciente' },
                       { value: 'doctor',  label: '🩺 Médico' },
-                    ].map(({ value, label }) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setFormData(p => ({ ...p, type: value }))}
-                        className={`py-2.5 px-4 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
-                          formData.type === value
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-slate-200 bg-white/60 text-slate-600 hover:border-blue-300'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                    ].map(({ value, label }) => {
+                      const isDoctorTypeLink = searchParams.get('type') === 'medico' || searchParams.get('type') === 'doctor';
+                      const isDisabled = value === 'doctor' ? !isDoctorTypeLink : isDoctorTypeLink;
+                      
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          disabled={isDisabled}
+                          onClick={() => setFormData(p => ({ ...p, type: value }))}
+                          className={`py-2.5 px-4 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
+                            formData.type === value
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : 'border-slate-200 bg-white/60 text-slate-600 hover:border-blue-300'
+                          } ${isDisabled ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -295,11 +313,39 @@ export default function RegisterPage() {
                 {formData.type === 'doctor' && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Número MPPS *</label>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex justify-between items-center">
+                        <span>Número MPPS *</span>
+                        <a 
+                          href="https://sistemas.sacs.gob.ve/consultas/prfsnal_salud" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-blue-500 hover:underline flex items-center gap-1 normal-case font-medium"
+                        >
+                          <Globe className="h-3 w-3" /> Verificar en SACS
+                        </a>
+                      </label>
                       <div className="relative">
-                        <Award className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
-                        <Input id="mpps_number" name="mpps_number" placeholder="MPPS-12345" value={formData.mpps_number} onChange={handleChange} required className="pl-9 rounded-xl border-slate-200 bg-slate-50/80 focus:bg-white focus:border-blue-400 h-11" />
+                        <Award className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${mppsError ? 'text-rose-400' : 'text-blue-400'}`} />
+                        <Input 
+                          id="mpps_number" 
+                          name="mpps_number" 
+                          placeholder="MPPS-12345" 
+                          value={formData.mpps_number} 
+                          onChange={handleChange} 
+                          required 
+                          className={`pl-9 rounded-xl border-slate-200 bg-slate-50/80 focus:bg-white h-11 transition-all ${
+                            mppsError ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-100' : 'focus:border-blue-400'
+                          }`} 
+                        />
+                        {formData.mpps_number && !mppsError && (
+                          <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                        )}
                       </div>
+                      {mppsError && (
+                        <p className="mt-1 text-[10px] text-rose-500 font-bold flex items-center gap-1 px-1">
+                          <AlertCircle className="h-3 w-3" /> {mppsError}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Especialidad *</label>

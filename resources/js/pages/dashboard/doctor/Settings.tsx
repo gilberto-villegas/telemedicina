@@ -67,8 +67,17 @@ export default function DoctorSettingsPage() {
     bank_id: '', pago_movil_bank_id: '',
   });
   const [uploading, setUploading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
+
+  const copyRegistrationLink = () => {
+    const link = `${window.location.origin}/auth/register?type=medico`;
+    navigator.clipboard.writeText(link).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -211,7 +220,20 @@ export default function DoctorSettingsPage() {
               <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight uppercase mb-2">
                 Configuración <span className="text-blue-200">Profesional</span>
               </h1>
-              <p className="text-blue-100/80 font-medium text-lg max-w-lg">Gestiona tu identidad digital, especialidad y métodos de recaudación.</p>
+              <p className="text-blue-100/80 font-medium text-lg max-w-lg mb-6">Gestiona tu identidad digital, especialidad y métodos de recaudación.</p>
+              
+              <button
+                type="button"
+                onClick={copyRegistrationLink}
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs tracking-widest transition-all uppercase shadow-xl ${
+                  copied 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'
+                }`}
+              >
+                {copied ? <CheckCircle className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                {copied ? '¡ENLACE COPIADO!' : 'COMPARTIR REGISTRO PARA MÉDICOS'}
+              </button>
             </div>
           </div>
         </div>

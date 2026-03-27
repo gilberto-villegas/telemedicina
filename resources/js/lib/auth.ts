@@ -30,6 +30,8 @@ export interface User {
   pago_movil_bank?: string;
   zelle_email?: string;
   zelle_holder?: string;
+  verified_at?: string;
+  verified_by?: string;
 }
 
 export interface AuthResponse {

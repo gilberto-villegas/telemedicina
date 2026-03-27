@@ -31,8 +31,17 @@ interface AdminStats {
 export default function AdminDashboard() {
     const navigate = useNavigate();
     const [user, setUser] = useState<User | null>(null);
+    const [copied, setCopied] = useState(false);
     const [stats, setStats] = useState<AdminStats | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const copyRegistrationLink = () => {
+        const link = `${window.location.origin}/auth/register?type=medico`;
+        navigator.clipboard.writeText(link).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    };
 
     useEffect(() => {
         if (!authService.isAuthenticated()) {
@@ -122,6 +131,23 @@ export default function AdminDashboard() {
                             <p className="text-blue-100 text-lg md:text-xl max-w-xl font-medium leading-relaxed uppercase tracking-tight">
                                 Supervisión y gestión global del sistema de telemedicina Venezuela.
                             </p>
+                        </div>
+
+                        {/* Link Sharing Button */}
+                        <div className="flex-shrink-0">
+                            <Button 
+                                onClick={copyRegistrationLink}
+                                className={`h-14 px-8 rounded-2xl font-black text-xs tracking-widest transition-all uppercase shadow-2xl ${
+                                    copied 
+                                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+                                    : 'bg-white text-blue-700 hover:bg-blue-50'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    {copied ? <ShieldCheck className="h-5 w-5" /> : <UserPlus className="h-5 w-5" />}
+                                    {copied ? '¡ENLACE COPIADO!' : 'COPIAR REGISTRO MÉDICO'}
+                                </div>
+                            </Button>
                         </div>
                     </div>
                 </div>

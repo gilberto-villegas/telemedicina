@@ -24,13 +24,17 @@ class AdminController extends Controller
 
     public function indexDoctors(): JsonResponse
     {
-        $doctors = User::doctors()->with('specialty_ref')->get();
+        $doctors = User::doctors()->with(['specialty_ref', 'bank', 'pagoMovilBank'])->get();
         return response()->json($doctors);
     }
 
-    public function verifyDoctor(User $doctor): JsonResponse
+    public function verifyDoctor(Request $request, User $doctor): JsonResponse
     {
-        $doctor->update(['is_verified' => true]);
+        $doctor->update([
+            'is_verified' => true,
+            'verified_at' => now(),
+            'verified_by' => $request->user()->id,
+        ]);
         return response()->json(['message' => 'Médico verificado exitosamente', 'user' => $doctor]);
     }
 

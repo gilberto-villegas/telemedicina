@@ -12,7 +12,7 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    public function register(Request $request): JsonResponse
+    public function register(Request $request, \App\Services\MppsValidationService $mppsService): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'type' => 'required|in:patient,doctor,clinic_admin,pharmacy',
@@ -34,6 +34,17 @@ class AuthController extends Controller
                 'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
+        }
+
+        // Validación de formato MPPS para médicos
+        if ($request->type === 'doctor' && $request->mpps_number) {
+            $validation = $mppsService->verifyWithMinistry($request->mpps_number, $request->document_id);
+            if (!$validation['success']) {
+                return response()->json([
+                    'message' => 'Error de validación MPPS',
+                    'errors' => ['mpps_number' => [$validation['message']]]
+                ], 422);
+            }
         }
 
         // Laravel generará el 'id' automáticamente (auto-increment)
