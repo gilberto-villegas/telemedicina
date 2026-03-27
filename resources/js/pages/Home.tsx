@@ -7,6 +7,8 @@ import {
   CheckCircle, Star, ChevronRight, Phone, MessageCircle,
   Users, Calendar, Award, ArrowRight, Zap, Globe
 } from 'lucide-react';
+import { Navbar } from '@/components/layout/Navbar';
+import { api } from '@/lib/api';
 
 /* ---- Animated counter hook ---- */
 function useCountUp(target: number, duration = 2000) {
@@ -47,23 +49,23 @@ function StatCard({ value, label, suffix = '' }: { value: number; label: string;
   useEffect(() => { if (visible) setStarted(true); }, [visible]);
 
   return (
-    <div ref={ref} className={`text-center glass rounded-2xl p-8 hover-lift animate-fade-in-up ${visible ? '' : 'opacity-0'}`}>
-      <div className="shimmer text-5xl font-extrabold mb-2">{count.toLocaleString()}{suffix}</div>
-      <div className="text-blue-100 text-sm font-medium tracking-wide uppercase">{label}</div>
+    <div ref={ref} className={`text-center p-10 rounded-[2.5rem] bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl animate-fade-in-up transition-all duration-700 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+      <div className="text-5xl font-black text-white mb-3 tracking-tighter tabular-nums">{count.toLocaleString()}{suffix}</div>
+      <div className="text-blue-200 text-[10px] font-black tracking-[0.2em] uppercase">{label}</div>
     </div>
   );
 }
 
 /* ---- Specialties ---- */
 const specialties = [
-  { icon: Heart,       label: 'Cardiología',       color: 'from-rose-400 to-pink-600',     desc: 'Atención al corazón y sistema cardiovascular' },
-  { icon: Brain,       label: 'Neurología',         color: 'from-violet-400 to-purple-600', desc: 'Diagnóstico del sistema nervioso' },
-  { icon: Baby,        label: 'Pediatría',          color: 'from-amber-400 to-orange-500',  desc: 'Cuidado integral del niño y adolescente' },
-  { icon: Eye,         label: 'Oftalmología',       color: 'from-cyan-400 to-teal-600',     desc: 'Salud visual y enfermedades oculares' },
-  { icon: Bone,        label: 'Traumatología',      color: 'from-lime-400 to-green-600',    desc: 'Huesos, músculos y articulaciones' },
-  { icon: Microscope,  label: 'Med. General',       color: 'from-blue-400 to-indigo-600',   desc: 'Consultas generales y preventivas' },
-  { icon: Stethoscope, label: 'Medicina Interna',   color: 'from-sky-400 to-blue-600',      desc: 'Diagnóstico y tratamiento integral' },
-  { icon: Shield,      label: 'Dermatología',       color: 'from-fuchsia-400 to-pink-600',  desc: 'Salud de la piel y sistema tegumentario' },
+  { icon: Heart,       label: 'Cardiología',       name: 'Cardiologia',       color: 'bg-rose-50 text-rose-600',    desc: 'Atención especializada para tu salud cardiovascular' },
+  { icon: Brain,       label: 'Neurología',         name: 'Neurologia',        color: 'bg-violet-50 text-violet-600', desc: 'Diagnóstico experto del sistema nervioso' },
+  { icon: Baby,        label: 'Pediatría',          name: 'Pediatria',         color: 'bg-orange-50 text-orange-600',  desc: 'Cuidado integral para los más pequeños' },
+  { icon: Eye,         label: 'Oftalmología',       name: 'Oftalmologia',      color: 'bg-cyan-50 text-cyan-600',     desc: 'Salud visual con tecnología de vanguardia' },
+  { icon: Bone,        label: 'Traumatología',      name: 'Traumatologia',     color: 'bg-emerald-50 text-emerald-600', desc: 'Recuperación de huesos y articulaciones' },
+  { icon: Microscope,  label: 'Med. General',       name: 'Medicina General',  color: 'bg-blue-50 text-blue-600',   desc: 'Tu primera línea de defensa en salud' },
+  { icon: Stethoscope, label: 'Medicina Interna',   name: 'Medicina Interna',  color: 'bg-sky-50 text-sky-600',      desc: 'Gestión clínica integral del adulto' },
+  { icon: Shield,      label: 'Dermatología',       name: 'Dermatologia',      color: 'bg-pink-50 text-pink-600',  desc: 'Protección y cuidado avanzado de tu piel' },
 ];
 
 /* ---- Steps ---- */
@@ -88,7 +90,26 @@ export default function Home() {
   const navigate = useNavigate();
   const isAuthenticated = authService.isAuthenticated();
   const heroRef = useRef<HTMLDivElement>(null);
-  const [headerSolid, setHeaderSolid] = useState(false);
+
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [specialtyDoctors, setSpecialtyDoctors] = useState<any[]>([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+
+  const openSpecialtyModal = async (specialtyName: string) => {
+    setSelectedSpecialty(specialtyName);
+    setIsModalOpen(true);
+    setLoadingDoctors(true);
+    try {
+      const res = await api.get(`/public/doctors?specialty=${encodeURIComponent(specialtyName)}&per_page=50`);
+      setSpecialtyDoctors(res.data.data || []);
+    } catch (e) {
+      console.error(e);
+      setSpecialtyDoctors([]);
+    } finally {
+      setLoadingDoctors(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -97,41 +118,11 @@ export default function Home() {
     }
   }, [isAuthenticated, navigate]);
 
-  /* Sticky header opacity on scroll */
-  useEffect(() => {
-    const onScroll = () => setHeaderSolid(window.scrollY > 60);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
 
       {/* ─── STICKY HEADER ─── */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${headerSolid ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-transparent'}`}>
-        <div className="container mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-xl animate-pulse-glow">
-              <Stethoscope className="h-6 w-6 text-white" />
-            </div>
-            <span className={`text-xl font-bold transition-colors duration-300 ${headerSolid ? 'text-blue-700' : 'text-white'}`}>
-              Telemedicina <span className="text-blue-400">VE</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link to="/auth/login">
-              <button className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${headerSolid ? 'text-gray-700 hover:text-blue-600' : 'text-white/80 hover:text-white'}`}>
-                Iniciar Sesión
-              </button>
-            </Link>
-            <Link to="/auth/register">
-              <button className="px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-semibold text-sm shadow-lg hover:shadow-blue-400/40 transition-all duration-200">
-                Regístrate Gratis
-              </button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar transparent={true} />
 
       {/* ─── HERO SECTION ─── */}
       <section ref={heroRef} className="hero-gradient relative min-h-screen flex items-center overflow-hidden">
@@ -147,7 +138,7 @@ export default function Home() {
               <div className="animate-fade-in-up">
                 <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-blue text-blue-200 text-sm font-medium mb-6">
                   <Zap className="h-4 w-4 text-yellow-400" />
-                  Plataforma #1 de Venezuela
+                  VilSalud: Salud Digital en Venezuela
                 </span>
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-tight">
                   Salud sin <br />
@@ -188,34 +179,47 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right image */}
+            {/* Right image - The Mockup */}
             <div className="relative animate-fade-in-up delay-200 hidden lg:block">
-              <div className="animate-float">
+              <div className="relative z-10 p-4 bg-white/5 rounded-[2.5rem] backdrop-blur-3xl border border-white/20 shadow-2xl animate-float">
                 <img
-                  src="/images/hero-bg.png"
-                  alt="Doctor en videollamada"
-                  className="w-full max-w-lg mx-auto rounded-3xl shadow-2xl object-cover"
+                  src="/assets/images/vilsalud_videoconsulta_mockup.png"
+                  alt="Doctor en videollamada VilSalud"
+                  className="w-full max-w-xl mx-auto rounded-[2rem] shadow-black/50 shadow-2xl object-cover hover:scale-[1.02] transition-transform duration-700"
                 />
-              </div>
-              {/* Floating badge */}
-              <div className="absolute -bottom-6 -left-6 glass rounded-2xl p-4 shadow-xl animate-float delay-300">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-500 rounded-lg">
-                    <Video className="h-5 w-5 text-white" />
+                
+                {/* Floating Elements */}
+                <div className="absolute top-1/2 -right-12 -translate-y-1/2 glass rounded-[1.5rem] p-6 shadow-2xl animate-pulse-slow">
+                   <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                      <Video className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-blue-300 font-black uppercase tracking-widest">En Vivo</p>
+                      <p className="text-sm font-bold text-white">Consulta Activa</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Videollamada activa</p>
-                    <p className="text-sm font-bold text-gray-800">Dr. Rodríguez</p>
+                </div>
+                
+                <div className="absolute -bottom-8 left-12 glass rounded-[1.5rem] p-6 shadow-2xl animate-float delay-700">
+                  <div className="flex items-center gap-4">
+                    <div className="flex -space-x-3">
+                      {[1,2,3].map(i => (
+                        <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-tighter overflow-hidden">
+                          <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white">+12k Pacientes</p>
+                      <p className="text-[10px] text-blue-300 font-bold uppercase tracking-widest">Confían en nosotros</p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="absolute -top-6 -right-6 glass rounded-2xl p-4 shadow-xl animate-float delay-500">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  <span className="text-sm font-bold text-gray-800">4.98</span>
-                  <span className="text-xs text-gray-500">promedio</span>
-                </div>
-              </div>
+              
+              {/* Glow Behind */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-blue-500/30 rounded-full blur-[120px] -z-10" />
             </div>
           </div>
         </div>
@@ -252,25 +256,27 @@ export default function Home() {
               Desde el registro hasta recibir tu diagnóstico, todo toma menos de 10 minutos.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 relative">
             {/* Connector line (desktop) */}
-            <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200 z-0" />
+            <div className="hidden lg:block absolute top-16 left-[15%] right-[15%] h-px bg-slate-200 z-0" />
             {steps.map(({ num, icon: Icon, title, desc }, i) => {
               const { ref, visible } = useVisible();
               return (
                 <div
                   key={num}
                   ref={ref}
-                  className={`relative z-10 text-center animate-fade-in-up hover-lift ${visible ? '' : 'opacity-0'}`}
+                  className={`relative z-10 text-center animate-fade-in-up group ${visible ? '' : 'opacity-0'}`}
                   style={{ animationDelay: `${i * 150}ms` }}
                 >
                   <div className="inline-flex flex-col items-center">
-                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl mb-4 animate-pulse-glow">
-                      <Icon className="h-10 w-10 text-white" />
+                    <div className="w-20 h-20 rounded-[2rem] bg-indigo-600 flex items-center justify-center shadow-xl mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                      <Icon className="h-8 w-8 text-white" />
+                      <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[10px] font-black text-indigo-600 border border-slate-100 italic">
+                        {num}
+                      </div>
                     </div>
-                    <span className="text-xs font-bold text-blue-400 tracking-widest mb-1">{num}</span>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                    <h3 className="text-xl font-bold text-slate-800 mb-3 tracking-tight">{title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed font-medium px-4">{desc}</p>
                   </div>
                 </div>
               );
@@ -286,7 +292,7 @@ export default function Home() {
             <div>
               <img
                 src="/images/patient-experience.png"
-                alt="Paciente usando Telemedicina Venezuela"
+                alt="Paciente usando VilSalud"
                 className="rounded-3xl shadow-2xl w-full object-cover hover-lift"
               />
             </div>
@@ -337,21 +343,26 @@ export default function Home() {
               Contamos con más de 30 especialidades médicas atendidas por profesionales certificados.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {specialties.map(({ icon: Icon, label, color, desc }, i) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {specialties.map(({ icon: Icon, label, name, color, desc }, i) => {
               const { ref, visible } = useVisible();
               return (
                 <div
                   key={label}
                   ref={ref}
-                  className={`hover-lift rounded-2xl p-6 text-center cursor-pointer group border border-gray-100 animate-fade-in-up ${visible ? '' : 'opacity-0'}`}
+                  className={`bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-500 animate-fade-in-up group cursor-pointer ${visible ? '' : 'opacity-0'}`}
                   style={{ animationDelay: `${i * 80}ms` }}
+                  onClick={() => openSpecialtyModal(name)}
                 >
-                  <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${color} mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    <Icon className="h-7 w-7 text-white" />
+                  <div className={`w-14 h-14 rounded-2xl ${color.split(' ')[0]} ${color.split(' ')[1]} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                    <Icon className="h-7 w-7" />
                   </div>
-                  <h3 className="font-bold text-gray-800 text-sm mb-1">{label}</h3>
-                  <p className="text-xs text-gray-500 leading-tight">{desc}</p>
+                  <h3 className="text-lg font-bold text-slate-800 mb-2 tracking-tight">{label}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed font-medium">{desc}</p>
+                  
+                  <div className="mt-6 pt-6 border-t border-slate-50 flex items-center text-indigo-600 font-bold text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                    Consultar ahora <ChevronRight className="ml-1 h-3 w-3" />
+                  </div>
                 </div>
               );
             })}
@@ -360,35 +371,44 @@ export default function Home() {
       </section>
 
       {/* ─── FEATURES BANNER ─── */}
-      <section className="py-20 hero-gradient">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-black text-white">
-              Todo lo que necesitas,<br /><span className="text-blue-300">en un solo lugar</span>
+      <section className="py-24 bg-slate-900 relative overflow-hidden">
+        {/* Abstract shapes for tech feel */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500 rounded-full blur-[120px]" />
+        </div>
+
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
+          <div className="text-center mb-20">
+            <span className="text-blue-400 font-bold text-xs uppercase tracking-[0.3em]">Características Elite</span>
+            <h2 className="text-4xl lg:text-5xl font-black text-white mt-4 tracking-tight">
+              Tecnología Médica de <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 font-black">Nivel Global</span>
             </h2>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: Video,       title: 'Videollamadas HD',         desc: 'Consultas en tiempo real optimizadas para Venezuela' },
-              { icon: FileText,    title: 'Historial Clínico Digital', desc: 'Tus datos médicos siempre disponibles y seguros' },
-              { icon: CreditCard,  title: 'Pagos Multi-moneda',       desc: 'Pago Móvil, transferencias y más' },
-              { icon: Clock,       title: 'Agenda Inteligente',        desc: 'Citas en minutos con recordatorios automáticos' },
-              { icon: Shield,      title: 'Seguridad Bancaria',        desc: 'Encriptación de nivel financiero para tus datos' },
-              { icon: MessageCircle, title: 'Chat Médico',             desc: 'Comunícate con tu doctor antes y después de la consulta' },
+              { icon: Video,       title: 'Videollamadas HD+',         desc: 'Protocolos de video optimizados para baja latencia en redes móviles.' },
+              { icon: FileText,    title: 'E-Health Records',          desc: 'Tu historial médico encriptado siguiendo estándares internacionales.' },
+              { icon: CreditCard,  title: 'Fintech Health',            desc: 'Pagos integrados con soporte multi-moneda local e internacional.' },
+              { icon: Clock,       title: 'Smart Scheduling',          desc: 'Algoritmos de agenda que eliminan los tiempos de espera.' },
+              { icon: Shield,      title: 'Privacidad Bancaria',       desc: 'Tus datos clínicos protegidos con encriptación AES-256 de grado militar.' },
+              { icon: MessageCircle, title: 'Medical Concierge',       desc: 'Canal directo de comunicación con tus médicos para seguimiento.' },
             ].map(({ icon: Icon, title, desc }, i) => {
               const { ref, visible } = useVisible();
               return (
                 <div
                   key={title}
                   ref={ref}
-                  className={`glass rounded-2xl p-6 hover-lift animate-fade-in-up ${visible ? '' : 'opacity-0'}`}
+                  className={`p-8 rounded-[2.5rem] bg-white/5 backdrop-blur-xl border border-white/10 hover:border-blue-500/50 transition-all duration-500 group animate-fade-in-up ${visible ? '' : 'opacity-0'}`}
                   style={{ animationDelay: `${i * 100}ms` }}
                 >
-                  <div className="p-3 bg-blue-500/20 rounded-xl inline-flex mb-4">
-                    <Icon className="h-6 w-6 text-blue-200" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-900/40 group-hover:scale-110 transition-transform">
+                    <Icon className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="font-bold text-white mb-2">{title}</h3>
-                  <p className="text-blue-200 text-sm leading-relaxed">{desc}</p>
+                  <h3 className="text-xl font-bold text-white mb-3 tracking-tight">{title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed font-medium">{desc}</p>
                 </div>
               );
             })}
@@ -397,37 +417,49 @@ export default function Home() {
       </section>
 
       {/* ─── TESTIMONIALS ─── */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-32 bg-white">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-16">
-            <span className="text-blue-600 font-semibold text-sm uppercase tracking-widest">Testimonios</span>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mt-2">
-              Lo que dicen<br /><span className="text-gradient">nuestros usuarios</span>
-            </h2>
+          <div className="flex flex-col lg:flex-row items-end justify-between mb-20 gap-8">
+            <div className="max-w-2xl">
+              <span className="text-indigo-600 font-bold text-xs uppercase tracking-[0.3em]">Testimonios Reales</span>
+              <h2 className="text-4xl lg:text-6xl font-black text-slate-900 mt-4 tracking-tight leading-none">
+                Confianza que <br />cruza <span className="text-indigo-600">fronteras</span>
+              </h2>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex -space-x-4">
+                {[1,2,3,4,5].map(i => (
+                  <img key={i} src={`https://i.pravatar.cc/100?img=${i+40}`} className="w-14 h-14 rounded-full border-4 border-white shadow-lg" alt="User" />
+                ))}
+              </div>
+              <div className="ml-4">
+                <div className="flex text-yellow-500">
+                  {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-current" />)}
+                </div>
+                <p className="text-sm font-bold text-slate-800 mt-1">4.9/5 Calificación</p>
+              </div>
+            </div>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map(({ name, role, text, stars }, i) => {
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {testimonials.map(({ name, role, text }, i) => {
               const { ref, visible } = useVisible();
               return (
                 <div
                   key={name}
                   ref={ref}
-                  className={`bg-white rounded-2xl p-8 shadow-lg hover-lift animate-fade-in-up border border-gray-100 ${visible ? '' : 'opacity-0'}`}
+                  className={`bg-slate-50 rounded-[2.5rem] p-10 hover:bg-white hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 animate-fade-in-up relative overflow-hidden group ${visible ? '' : 'opacity-0'}`}
                   style={{ animationDelay: `${i * 150}ms` }}
                 >
-                  <div className="flex mb-4">
-                    {Array.from({ length: stars }).map((_, s) => (
-                      <Star key={s} className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 leading-relaxed mb-6 italic">"{text}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                  <MessageCircle className="absolute -top-4 -right-4 h-24 w-24 text-indigo-500/5 group-hover:scale-110 transition-transform" />
+                  <p className="text-lg text-slate-600 leading-relaxed mb-10 font-medium relative z-10">"{text}"</p>
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-lg">
                       {name[0]}
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 text-sm">{name}</p>
-                      <p className="text-gray-500 text-xs">{role}</p>
+                      <p className="font-bold text-slate-900 leading-none">{name}</p>
+                      <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">{role}</p>
                     </div>
                   </div>
                 </div>
@@ -438,26 +470,46 @@ export default function Home() {
       </section>
 
       {/* ─── CTA SECTION ─── */}
-      <section className="py-24 bg-gradient-to-br from-blue-700 via-indigo-700 to-blue-900 relative overflow-hidden">
+      <section className="py-32 bg-slate-950 relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-10 left-1/4 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-10 right-1/4 w-72 h-72 bg-indigo-400/20 rounded-full blur-3xl animate-float delay-400" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/20 rounded-full blur-[160px] animate-pulse-slow" />
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
         </div>
+
         <div className="container mx-auto px-4 sm:px-6 text-center relative z-10">
-          <h2 className="text-4xl lg:text-6xl font-black text-white mb-6">
-            Tu salud no puede<br />esperar
-          </h2>
-          <p className="text-blue-200 text-xl mb-10 max-w-2xl mx-auto">
-            Únete a miles de venezolanos que ya cuidan su salud de forma digital.
-            Registro gratuito, sin tarjeta de crédito.
-          </p>
-          <Link to="/auth/register?type=patient">
-            <button className="group inline-flex items-center gap-4 px-10 py-5 rounded-2xl bg-white text-blue-700 font-black text-xl shadow-2xl hover:shadow-white/20 hover:scale-105 transition-all duration-300">
-              Empieza Gratis Ahora
-              <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform" />
-            </button>
-          </Link>
-          <p className="text-blue-300 text-sm mt-6">✓ Sin costo de registro&nbsp;&nbsp;✓ Cancela cuando quieras</p>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-5xl lg:text-8xl font-black text-white mb-10 tracking-tighter leading-[0.9]">
+              EL FUTURO DE LA SALUD <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-400 animate-shimmer bg-[length:200%_auto]">COMIENZA AQUÍ</span>
+            </h2>
+            <p className="text-slate-400 text-xl lg:text-2xl mb-12 font-medium leading-relaxed">
+              Únete a la red médica digital más avanzada de Venezuela. <br />
+              Atención premium, sin esperas, sin fronteras.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <Link to="/auth/register?type=patient">
+                <button className="group relative px-12 py-6 bg-white text-slate-950 font-black text-xl rounded-[2rem] hover:scale-105 transition-all duration-500 shadow-[0_20px_50px_rgba(255,255,255,0.1)] overflow-hidden">
+                  <span className="relative z-10 flex items-center gap-3">
+                    EMPEZA GRATIS AHORA
+                    <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-slate-200 to-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              </Link>
+            </div>
+            <div className="mt-12 flex items-center justify-center gap-8 py-8 border-t border-white/5">
+              {[
+                { icon: Shield, text: 'Seguridad Militar' },
+                { icon: Star, text: 'Calidad Premium' },
+                { icon: Globe, text: 'Alcance Global' },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-2 text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em]">
+                  <Icon className="h-4 w-4 text-indigo-500" />
+                  {text}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -467,11 +519,11 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-600 rounded-xl">
-                <Stethoscope className="h-5 w-5 text-white" />
+                <img src="/assets/branding/logo.png" alt="VilSalud" className="h-5 w-5 object-contain invert brightness-0" style={{ filter: 'brightness(0) invert(1)' }} />
               </div>
-              <span className="font-bold text-white text-lg">Telemedicina Venezuela</span>
+              <span className="font-bold text-white text-lg tracking-tight">VilSalud</span>
             </div>
-            <p className="text-sm">© 2024 Telemedicina Venezuela. Todos los derechos reservados.</p>
+            <p className="text-sm">© 2024 VilSalud. Todos los derechos reservados.</p>
             <div className="flex gap-6 text-sm">
               <a href="#" className="hover:text-white transition-colors">Privacidad</a>
               <a href="#" className="hover:text-white transition-colors">Términos</a>
@@ -480,6 +532,74 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* ─── DOCTORS MODAL ─── */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" style={{ zIndex: 9999 }}>
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-fade-in-up">
+            
+            {/* Modal Header */}
+            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Especialistas en {selectedSpecialty}</h3>
+                <p className="text-sm text-slate-500 font-medium mt-1">Nuestros profesionales certificados listos para atenderte.</p>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="h-10 w-10 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-8 overflow-y-auto flex-1">
+              {loadingDoctors ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
+                  <p className="text-slate-500 font-medium">Buscando especialistas...</p>
+                </div>
+              ) : specialtyDoctors.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="h-20 w-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Stethoscope className="h-10 w-10 text-slate-400" />
+                  </div>
+                  <h4 className="text-xl font-bold text-slate-900 mb-2">No hay médicos disponibles</h4>
+                  <p className="text-slate-500">Actualmente no tenemos especialistas registrados en esta área.</p>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {specialtyDoctors.map(doc => (
+                    <div key={doc.id} className="bg-white border text-center border-slate-100 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center group">
+                       <div className="w-24 h-24 rounded-[1.5rem] bg-slate-100 overflow-hidden mb-4 shadow-sm border-2 border-white group-hover:border-blue-100 transition-colors">
+                          {doc.avatar_url ? (
+                            <img src={doc.avatar_url} alt={`Dr. ${doc.last_name}`} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                               <Stethoscope className="h-10 w-10" />
+                            </div>
+                          )}
+                       </div>
+                       <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{doc.specialty}</span>
+                       <h4 className="text-lg font-bold text-slate-900 line-clamp-1 truncate w-full">Dr. {doc.first_name} {doc.last_name}</h4>
+                       
+                       <div className="flex items-center gap-1 mt-2 mb-6 text-yellow-500">
+                         {[1,2,3,4,5].map(j => (
+                           <Star key={j} className={`h-4 w-4 ${j <= Math.round(doc.rating || 5) ? 'fill-current' : 'text-slate-200 fill-slate-200'}`} />
+                         ))}
+                       </div>
+
+                       <Link to="/auth/login" className="w-full mt-auto">
+                         <button className="w-full py-3 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all hover:bg-blue-600 shadow-md">
+                           Visitar Médico
+                         </button>
+                       </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

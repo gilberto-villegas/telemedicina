@@ -129,7 +129,7 @@ export default function AdminDashboard() {
                                 BIENVENIDO, <br/> ADMINISTRADOR
                             </h1>
                             <p className="text-blue-100 text-lg md:text-xl max-w-xl font-medium leading-relaxed uppercase tracking-tight">
-                                Supervisión y gestión global del sistema de telemedicina Venezuela.
+                                Supervisión y gestión global del sistema de VilSalud.
                             </p>
                         </div>
 

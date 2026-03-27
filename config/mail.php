@@ -24,7 +24,7 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'noreply@telemedicina.com'),
-        'name' => env('MAIL_FROM_NAME', 'Telemedicina Venezuela'),
+        'name' => env('MAIL_FROM_NAME', 'VilSalud'),
     ],
 
 ];

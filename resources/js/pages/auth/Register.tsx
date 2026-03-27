@@ -107,7 +107,7 @@ export default function RegisterPage() {
               <Stethoscope className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold text-white drop-shadow-lg">
-              Telemedicina <span className="text-teal-300">VE</span>
+              VilSalud <span className="text-teal-300">VE</span>
             </span>
           </Link>
 
@@ -157,7 +157,7 @@ export default function RegisterPage() {
           </div>
 
           <p className="text-teal-400/70 text-xs">
-            © 2024 Telemedicina Venezuela. Todos los derechos reservados.
+            © 2024 VilSalud. Todos los derechos reservados.
           </p>
         </div>
       </div>
@@ -194,7 +194,7 @@ export default function RegisterPage() {
             <div className="p-2 bg-teal-600 rounded-xl shadow-lg">
               <Stethoscope className="h-5 w-5 text-white" />
             </div>
-            <span className="text-base font-bold text-slate-800">Telemedicina VE</span>
+            <span className="text-base font-bold text-slate-800">VilSalud</span>
           </Link>
         </div>
 

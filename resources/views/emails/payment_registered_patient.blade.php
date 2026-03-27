@@ -64,7 +64,7 @@
             <a href="{{ $appointments_url }}" class="button">IR A MIS CITAS</a>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} Telemedicina. Soporte: soporte@telemedicina.test
+            &copy; {{ date('Y') }} VilSalud. Soporte: soporte@telemedicina.test
         </div>
     </div>
 </body>

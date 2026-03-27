@@ -25,6 +25,7 @@ Route::get('/up', function () {
 });
 
 Route::get('/specialties', [App\Http\Controllers\SpecialtyController::class, 'index']);
+Route::get('/public/doctors', [DoctorController::class, 'index']);
 
 // Autenticación pública
 Route::group(['prefix' => 'auth'], function () {

@@ -1,7 +1,7 @@
 {
-    "name": "telemedicina/backend",
+    "name": "gilberto-villegas/vilsalud",
     "type": "project",
-    "description": "Backend API para Plataforma de Telemedicina Venezuela",
+    "description": "Plataforma de VilSalud - Telemedicina Profesional",
     "keywords": ["laravel", "telemedicine", "venezuela"],
     "license": "proprietary",
     "require": {

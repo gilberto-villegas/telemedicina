@@ -1,4 +1,4 @@
-# 🏥 Telemedicina Venezuela
+# 🏥 VilSalud Venezuela
 
 > Plataforma integral de atención médica a distancia que conecta pacientes y médicos a través de consultas virtuales en tiempo real, gestionando citas, historiales clínicos y videollamadas de forma segura y eficiente.
 
@@ -20,7 +20,7 @@
 
 ## 💡 Concepto del Proyecto
 
-**Telemedicina Venezuela** es una plataforma web diseñada para facilitar el acceso a servicios de salud de forma remota. Permite a los pacientes registrarse, buscar médicos por especialidad, agendar citas, acceder a videollamadas con profesionales de salud y consultar su historial médico, todo desde un entorno seguro y moderno.
+**VilSalud Venezuela** es una plataforma web diseñada para facilitar el acceso a servicios de salud de forma remota. Permite a los pacientes registrarse, buscar médicos por especialidad, agendar citas, acceder a videollamadas con profesionales de salud y consultar su historial médico, todo desde un entorno seguro y moderno.
 
 Los médicos cuentan con su propio panel para gestionar su agenda, atender consultas en línea, emitir recetas digitales y hacer seguimiento a sus pacientes. La plataforma fue diseñada pensando en la realidad del sistema de salud venezolano, priorizando la accesibilidad y la facilidad de uso.
 

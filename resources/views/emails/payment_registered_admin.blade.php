@@ -64,7 +64,7 @@
             <a href="{{ $admin_url }}" class="button">IR A VALIDACIÓN DE PAGOS</a>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} Telemedicina - Panel de Administración
+            &copy; {{ date('Y') }} VilSalud - Panel de Administración
         </div>
     </div>
 </body>

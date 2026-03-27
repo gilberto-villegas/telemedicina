@@ -39,7 +39,7 @@ MAIL_PORT=2525
 MAIL_USERNAME=null
 MAIL_PASSWORD=null
 MAIL_ENCRYPTION=null
-MAIL_FROM_ADDRESS="noreply@telemedicina.com"
+MAIL_FROM_ADDRESS="noreply@vilsalud.com"
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 

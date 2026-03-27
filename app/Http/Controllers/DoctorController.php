@@ -34,7 +34,9 @@ class DoctorController extends Controller
             });
         }
 
-        $doctors = $query->with('specialty_ref')->get()->map(function($doctor) {
+        $doctors = $query->with('specialty_ref')->paginate($request->input('per_page', 12));
+        
+        $doctors->getCollection()->transform(function($doctor) {
             return [
                 'id' => $doctor->id,
                 'first_name' => $doctor->first_name,

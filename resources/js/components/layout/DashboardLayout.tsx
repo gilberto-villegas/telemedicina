@@ -120,8 +120,8 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         <div className="fixed left-0 top-0 bottom-0 w-64 bg-white shadow-xl">
           <div className="p-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Stethoscope className="h-6 w-6 text-primary" />
-              <span className="font-bold text-primary">Telemedicina</span>
+              <img src="/assets/branding/logo.png" alt="VilSalud" className="h-6 w-6 object-contain" />
+              <span className="font-bold text-primary tracking-tight">VilSalud</span>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
               <X className="h-5 w-5" />
@@ -160,9 +160,9 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         <div className="p-6 border-b border-white/5">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-blue-500/20">
-              <Stethoscope className="h-6 w-6 text-blue-500" />
+              <img src="/assets/branding/logo.png" alt="VilSalud" className="h-6 w-6 object-contain" />
             </div>
-            <span className="font-bold text-lg text-white tracking-tighter">TELEMEDICINA</span>
+            <span className="font-bold text-lg text-white tracking-tighter uppercase">VilSalud</span>
           </div>
         </div>
         <nav className="p-4 space-y-2">

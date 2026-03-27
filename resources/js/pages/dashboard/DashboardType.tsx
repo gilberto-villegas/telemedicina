@@ -466,7 +466,7 @@ export default function DashboardType() {
                     <Stethoscope className="h-12 w-12 text-blue-600" />
                 </div>
                 <h1 className="text-4xl font-black text-slate-800">Dashboard</h1>
-                <p className="text-xl text-slate-500">Bienvenido a Telemedicina Venezuela</p>
+                <p className="text-xl text-slate-500">Bienvenido a VilSalud</p>
             </div>
         </DashboardLayout>
     );

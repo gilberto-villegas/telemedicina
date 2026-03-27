@@ -57,7 +57,7 @@ export default function LoginPage() {
               <Stethoscope className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold text-white drop-shadow-lg">
-              Telemedicina <span className="text-blue-300">VE</span>
+              VilSalud <span className="text-blue-300">VE</span>
             </span>
           </Link>
 
@@ -103,7 +103,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-blue-400/70 text-xs">
-            © 2024 Telemedicina Venezuela. Todos los derechos reservados.
+            © 2024 VilSalud. Todos los derechos reservados.
           </p>
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function LoginPage() {
             <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-500/20">
               <Stethoscope className="h-5 w-5 text-white" />
             </div>
-            <span className="text-base font-bold text-slate-800">Telemedicina VE</span>
+            <span className="text-base font-bold text-slate-800">VilSalud</span>
           </Link>
         </div>
 
@@ -160,7 +160,7 @@ export default function LoginPage() {
                   <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Portal Médico Seguro</span>
                 </div>
                 <h1 className="text-3xl font-black text-slate-900 leading-tight">Bienvenido de vuelta</h1>
-                <p className="text-slate-400 mt-1.5 text-sm">Accede a tu cuenta de Telemedicina Venezuela</p>
+                <p className="text-slate-400 mt-1.5 text-sm">Accede a tu cuenta de VilSalud</p>
               </div>
 
               {error && (

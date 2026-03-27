@@ -127,8 +127,10 @@ function getPrintStyles(): string {
     body { font-family: 'Inter', -apple-system, sans-serif; color: #1e293b; line-height: 1.6; background: #fff; }
     .page { padding: 40px 50px; }
     
-    .doc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 25px; border-bottom: 2px solid #f1f5f9; }
-    .brand h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+    .doc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-bottom: 25px; border-bottom: 2px solid #f1f5f9; }
+    .header-left { display: flex; align-items: center; gap: 15px; }
+    .logo-img { height: 50px; width: 50px; object-contain: contain; }
+    .brand h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
     .brand p { font-size: 13px; color: #64748b; font-weight: 500; }
     
     .status-badge { display: inline-block; padding: 4px 12px; border-radius: 99px; background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; }
@@ -192,9 +194,12 @@ function buildHeaderHtml(apt: AppointmentData, title: string): string {
 
   return `
     <div class="doc-header">
-      <div class="brand">
-        <h1>🏥 Telemedicina</h1>
-        <p>Atención Médica Digital Premium</p>
+      <div class="header-left">
+        <img src="/assets/branding/logo.png" class="logo-img" alt="VilSalud Logo">
+        <div class="brand">
+          <h1>VilSalud</h1>
+          <p>Atención Médica Digital Premium</p>
+        </div>
       </div>
       <div style="text-align: right">
         <div class="status-badge">${title}</div>
@@ -281,7 +286,7 @@ function buildFooterHtml(doctor: DoctorPrintInfo | undefined): string {
         <div class="signature-name">Dr. ${doctor?.first_name} ${doctor?.last_name}</div>
         <div class="signature-specialty">${typeof doctor?.specialty === 'object' ? (doctor.specialty?.name || '') : (doctor?.specialty_name || doctor?.specialty || '')} - MPPS: ${doctor?.mpps_number || ''}</div>
       </div>
-      <p>© Telemedicina — Consulta Digital Certificada</p>
+      <p>© VilSalud — Consulta Digital Certificada</p>
       <p style="color:#cbd5e1;">Fecha de emisión: ${new Date().toLocaleDateString('es-VE')}</p>
       <div class="qr-placeholder">CÓDIGO DE VERIFICACIÓN DIGITAL — #${Math.random().toString(36).substr(2, 9).toUpperCase()}</div>
     </div>

@@ -45,7 +45,7 @@
             <a href="{{ $login_url }}" class="button">IR AL PANEL MÉDICO</a>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} Telemedicina. Todos los derechos reservados.
+            &copy; {{ date('Y') }} VilSalud. Todos los derechos reservados.
         </div>
     </div>
 </body>

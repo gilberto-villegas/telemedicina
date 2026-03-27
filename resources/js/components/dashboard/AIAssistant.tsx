@@ -14,7 +14,7 @@ const TOUR_STEPS: TourStep[] = [
     target: 'dashboard-main',
     title: 'Bienvenido a tu Panel',
     content: 'Aquí puedes ver un resumen de su salud, próximas citas y recordatorios importantes de forma rápida.',
-    audioText: '¡Hola! Bienvenido a tu panel principal de telemedicina. Aquí encontrarás un resumen de todo lo que necesitas para cuidar tu salud con un diseño premium y fácil de usar.'
+    audioText: '¡Hola! Bienvenido a tu panel principal de VilSalud. Aquí encontrarás un resumen de todo lo que necesitas para cuidar tu salud con un diseño premium y fácil de usar.'
   },
   {
     target: 'nav-doctors',
