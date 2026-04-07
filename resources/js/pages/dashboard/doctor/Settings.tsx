@@ -15,6 +15,7 @@ type FormData = {
   pago_movil_phone: string; pago_movil_document_id: string; pago_movil_bank: string;
   zelle_email: string; zelle_holder: string;
   digital_signature: string;
+  digital_stamp: string;
   bank_id: string;
   pago_movil_bank_id: string;
 };
@@ -64,6 +65,7 @@ export default function DoctorSettingsPage() {
     pago_movil_phone: '', pago_movil_document_id: '', pago_movil_bank: '',
     zelle_email: '', zelle_holder: '',
     digital_signature: '',
+    digital_stamp: '',
     bank_id: '', pago_movil_bank_id: '',
   });
   const [uploading, setUploading] = useState(false);
@@ -102,6 +104,7 @@ export default function DoctorSettingsPage() {
         pago_movil_bank: u.pago_movil_bank || '',
         zelle_email: u.zelle_email || '', zelle_holder: u.zelle_holder || '',
         digital_signature: u.digital_signature || '',
+        digital_stamp: u.digital_stamp || '',
         bank_id: u.bank_id || '', pago_movil_bank_id: u.pago_movil_bank_id || '',
       });
     }).catch(() => {}).finally(() => setLoading(false));
@@ -430,6 +433,66 @@ export default function DoctorSettingsPage() {
                   <p className="text-[11px] text-slate-500 italic">
                     Use su mouse o dedo para firmar en el recuadro superior. Una vez confirme, los cambios se guardarán al pulsar el botón inferior.
                   </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sello Digital */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-blue-50 rounded-xl">
+                <Award className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">Sello Profesional</p>
+                <p className="text-xs text-gray-500">Imagen de su sello que aparecerá al lado de su firma</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {formData.digital_stamp ? (
+                <div className="space-y-4">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sello Actual</p>
+                  <div className="border border-slate-100 rounded-2xl p-4 bg-slate-50 inline-block">
+                    <img src={formData.digital_stamp} alt="Sello" className="max-h-32" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, digital_stamp: '' }))}
+                    className="block text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors"
+                  >
+                    Eliminar sello actual
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Subir Sello</p>
+                  <div 
+                    onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = async (e: any) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const fd = new FormData();
+                            fd.append('stamp', file);
+                            try {
+                                const res = await api.post('/auth/stamp', fd);
+                                setFormData(prev => ({ ...prev, digital_stamp: res.data.url }));
+                            } catch (err) {
+                                alert('Error al subir el sello');
+                            }
+                        };
+                        input.click();
+                    }}
+                    className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center gap-2"
+                  >
+                    <Camera className="h-8 w-8 text-gray-400" />
+                    <p className="text-sm font-bold text-gray-600">Haga clic para subir la imagen de su sello</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest">PNG o JPG (Fondo transparente recomendado)</p>
+                  </div>
                 </div>
               )}
             </div>

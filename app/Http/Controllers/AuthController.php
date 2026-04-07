@@ -160,6 +160,7 @@ class AuthController extends Controller
             'zelle_email' => 'sometimes|email|max:255|nullable',
             'zelle_holder' => 'sometimes|string|max:255|nullable',
             'digital_signature' => 'sometimes|string|nullable',
+            'digital_stamp' => 'sometimes|string|nullable',
         ]);
 
         if ($validator->fails()) {
@@ -175,7 +176,7 @@ class AuthController extends Controller
             'specialty', 'specialty_id', 'mpps_number', 'consultation_price_usd',
             'bank_name', 'bank_account_number', 'bank_account_holder', 'bank_document_id', 'bank_account_type', 'bank_id',
             'pago_movil_phone', 'pago_movil_document_id', 'pago_movil_bank', 'pago_movil_bank_id',
-            'zelle_email', 'zelle_holder', 'digital_signature'
+            'zelle_email', 'zelle_holder', 'digital_signature', 'digital_stamp'
         ]));
 
         return response()->json([
@@ -201,6 +202,26 @@ class AuthController extends Controller
             $filename = time() . '.' . $avatar->getClientOriginalExtension();
             $path = $avatar->storeAs('public/avatars', $filename);
             $url = asset('storage/avatars/' . $filename);
+
+            return response()->json([
+                'url' => $url
+            ]);
+        }
+
+        return response()->json(['message' => 'No se subió ningún archivo'], 400);
+    }
+
+    public function uploadStamp(Request $request): JsonResponse
+    {
+        $request->validate([
+            'stamp' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+        ]);
+
+        if ($request->hasFile('stamp')) {
+            $stamp = $request->file('stamp');
+            $filename = time() . '.' . $stamp->getClientOriginalExtension();
+            $path = $stamp->storeAs('public/stamps', $filename);
+            $url = asset('storage/stamps/' . $filename);
 
             return response()->json([
                 'url' => $url

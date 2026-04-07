@@ -26,7 +26,18 @@ interface AppointmentData {
   status_label: string;
   status?: { id: number; name: string; label: string };
   patient?: { id: string; first_name: string; last_name: string; document_id: string; date_of_birth: string; };
-  doctor?: { id: string; first_name: string; last_name: string; specialty: any; specialty_name?: string; email: string; avatar_url?: string; digital_signature?: string; };
+  doctor?: { 
+    id: string; 
+    first_name: string; 
+    last_name: string; 
+    specialty: any; 
+    specialty_name?: string; 
+    email: string; 
+    avatar_url?: string; 
+    digital_signature?: string; 
+    digital_stamp?: string; 
+    mpps_number?: string; 
+  };
   medical_record?: {
     id: string;
     subjective: string;
@@ -95,50 +106,57 @@ function getPrintStyles(): string {
   return `
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', -apple-system, sans-serif; color: #1e293b; line-height: 1.6; background: #fff; }
-    .page { padding: 40px 50px; }
+    .page { padding: 0; }
     
-    .doc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-bottom: 25px; border-bottom: 2px solid #f1f5f9; }
-    .header-left { display: flex; align-items: center; gap: 15px; }
-    .logo-img { height: 50px; width: 50px; object-contain: contain; }
-    .brand h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
-    .brand p { font-size: 13px; color: #64748b; font-weight: 500; }
+    .doc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo-img { height: 40px; width: 40px; object-contain: contain; }
+    .brand h1 { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
+    .brand p { font-size: 11px; color: #64748b; font-weight: 500; }
     
-    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 99px; background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .status-badge { display: inline-block; padding: 2px 10px; border-radius: 99px; background: #f1f5f9; color: #475569; font-size: 10px; font-weight: 700; text-transform: uppercase; }
     
-    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 35px; }
-    .meta-box h4 { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-    .meta-content { font-size: 14px; color: #334155; }
-    .meta-name { font-weight: 700; color: #0f172a; display: block; margin-bottom: 2px; }
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .meta-box h4 { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+    .meta-content { font-size: 13px; color: #334155; }
+    .meta-name { font-weight: 700; color: #0f172a; display: block; margin-bottom: 1px; }
     
-    .section-title { font-size: 15px; font-weight: 800; color: #0f172a; margin: 30px 0 15px 0; display: flex; align-items: center; gap: 10px; }
+    .section-title { font-size: 13px; font-weight: 800; color: #0f172a; margin: 15px 0 8px 0; display: flex; align-items: center; gap: 8px; }
     .section-title::after { content: ''; flex: 1; height: 1px; background: #f1f5f9; }
     
-    .soap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .soap-card { padding: 18px; border-radius: 12px; background: #f8fafc; border-left: 4px solid #cbd5e1; }
-    .soap-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
-    .soap-val { font-size: 13px; color: #334155; white-space: pre-wrap; }
+    .soap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .soap-card { padding: 12px; border-radius: 10px; background: #f8fafc; border-left: 3px solid #cbd5e1; }
+    .soap-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+    .soap-val { font-size: 12px; color: #334155; white-space: pre-wrap; line-height: 1.4; }
     
-    .vital-strip { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-    .vital-tag { padding: 8px 14px; background: #f1f5f9; border-radius: 8px; font-size: 12px; color: #475569; }
-    .vital-tag span { font-weight: 800; color: #0f172a; margin-left: 5px; }
+    .vital-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+    .vital-tag { padding: 6px 10px; background: #f1f5f9; border-radius: 6px; font-size: 11px; color: #475569; }
+    .vital-tag span { font-weight: 800; color: #0f172a; margin-left: 4px; }
     
-    .prescription-list { border: 1px solid #f1f5f9; border-radius: 16px; overflow: hidden; }
-    .prescription-item { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; }
+    .prescription-list { border: 1px solid #f1f5f9; border-radius: 12px; overflow: hidden; }
+    .prescription-item { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; }
     .prescription-item:last-child { border-bottom: none; }
-    .med-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
-    .med-name { font-weight: 800; color: #0f172a; font-size: 14px; }
-    .med-dose { font-size: 12px; color: #64748b; font-weight: 600; }
-    .med-meta { font-size: 12px; color: #334155; }
-    .med-instr { font-size: 12px; color: #94a3b8; font-style: italic; margin-top: 5px; }
+    .med-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+    .med-name { font-weight: 800; color: #0f172a; font-size: 13px; }
+    .med-dose { font-size: 11px; color: #64748b; font-weight: 600; }
+    .med-meta { font-size: 11px; color: #334155; }
+    .med-instr { font-size: 11px; color: #94a3b8; font-style: italic; margin-top: 3px; }
     
-    .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #f1f5f9; text-align: center; }
-    .footer p { font-size: 11px; color: #94a3b8; margin-bottom: 5px; }
-    .qr-placeholder { margin-top: 20px; font-size: 10px; color: #cbd5e1; }
-
-    .signature-box { margin-top: 30px; text-align: right; }
-    .signature-img { max-height: 80px; max-width: 200px; display: block; margin-left: auto; margin-bottom: 5px; }
-    .signature-name { font-size: 13px; font-weight: 800; color: #0f172a; border-top: 1px solid #f1f5f9; padding-top: 5px; display: inline-block; min-width: 200px; }
-    .signature-specialty { font-size: 11px; color: #64748b; display: block; }
+    .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #f1f5f9; text-align: center; }
+    .footer p { font-size: 10px; color: #94a3b8; margin-bottom: 2px; }
+    .qr-placeholder { margin-top: 10px; font-size: 9px; color: #cbd5e1; }
+ 
+    .signature-box { margin-top: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .signature-container { position: relative; display: flex; align-items: center; justify-content: center; width: 250px; height: 90px; margin-bottom: 2px; }
+    .signature-img { position: absolute; max-height: 70px; max-width: 200px; object-fit: contain; z-index: 20; }
+    .stamp-img { position: absolute; max-height: 80px; max-width: 200px; object-fit: contain; z-index: 10; opacity: 0.8; }
+    .signature-name { font-size: 13px; font-weight: 800; color: #0f172a; border-top: 1px solid #f1f5f9; padding-top: 5px; display: inline-block; min-width: 250px; margin-top: 5px; }
+    .signature-specialty { font-size: 10px; color: #64748b; display: block; margin-top: 1px; }
+    
+    .print-section { padding: 50px 40px 20px 40px; page-break-after: always; }
+    .print-section:last-child { page-break-after: auto; }
+    .footer, .signature-box, .soap-card, .prescription-item { page-break-inside: avoid; }
+: avoid; }
     
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -153,6 +171,7 @@ interface DoctorPrintInfo {
   specialty_name?: string;
   email?: string;
   digital_signature?: string;
+  digital_stamp?: string;
   mpps_number?: string;
 }
 
@@ -255,7 +274,10 @@ function buildFooterHtml(doctor: DoctorPrintInfo | undefined): string {
   return `
     <div class="footer">
       <div class="signature-box" style="margin-bottom: 40px;">
-        ${doctor?.digital_signature ? `<img src="${doctor.digital_signature}" class="signature-img" alt="Firma">` : '<div style="height: 60px;"></div>'}
+        <div class="signature-container">
+          ${doctor?.digital_stamp ? `<img src="${doctor.digital_stamp}" class="stamp-img" alt="Sello">` : ''}
+          ${doctor?.digital_signature ? `<img src="${doctor.digital_signature}" class="signature-img" alt="Firma">` : '<div style="height: 60px;"></div>'}
+        </div>
         <div class="signature-name">Dr. ${doctor?.first_name} ${doctor?.last_name}</div>
         <div class="signature-specialty">${typeof doctor?.specialty === 'object' ? (doctor.specialty?.name || '') : (doctor?.specialty_name || doctor?.specialty || '')} - MPPS: ${doctor?.mpps_number || ''}</div>
       </div>
@@ -367,10 +389,24 @@ export default function PatientAppointmentDetailPage() {
 
   const printAll = () => {
     if (!appointment) return;
-    let body = buildHeaderHtml(appointment, 'Resumen de Consulta');
-    if (appointment.medical_record) body += buildMedicalRecordHtml(appointment.medical_record);
-    if (appointment.prescription) body += '<div style="margin: 40px 0; border-top: 1px dashed #e2e8f0;"></div>' + buildPrescriptionHtml(appointment.prescription);
-    body += buildFooterHtml(appointment.doctor);
+    let body = "";
+    
+    if (appointment.medical_record) {
+        body += '<div class="print-section">';
+        body += buildHeaderHtml(appointment, 'Informe Médico');
+        body += buildMedicalRecordHtml(appointment.medical_record);
+        body += buildFooterHtml(appointment.doctor);
+        body += '</div>';
+    }
+
+    if (appointment.prescription) {
+        body += '<div class="print-section">';
+        body += buildHeaderHtml(appointment, 'Receta Médica');
+        body += buildPrescriptionHtml(appointment.prescription);
+        body += buildFooterHtml(appointment.doctor);
+        body += '</div>';
+    }
+
     openPrintWindow(body);
   };
 

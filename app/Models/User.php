@@ -53,6 +53,7 @@ class User extends Authenticatable
         'zelle_email',
         'zelle_holder',
         'digital_signature',
+        'digital_stamp',
         'is_blocked',
     ];
 
