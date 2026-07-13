@@ -95,7 +95,7 @@ function PremiumCard({ title, icon: Icon, children, action }: { title: string; i
         </div>
         {action}
       </div>
-      <div className="relative p-8">{children}</div>
+      <div className="relative p-4 md:p-8">{children}</div>
     </div>
   );
 }
@@ -476,20 +476,20 @@ export default function PatientAppointmentDetailPage() {
                 </div>
               </div>
               <div>
-                <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-2 uppercase">
+                <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-2 uppercase leading-tight">
                   Detalle de <span className="text-blue-600">Consulta</span>
                 </h1>
-                <p className="text-lg text-slate-500 font-medium">
+                <p className="text-sm md:text-lg text-slate-500 font-medium">
                   {formattedDate} de {formattedYear} <span className="mx-2 text-slate-300">•</span> {formattedTime} hrs
                 </p>
               </div>
             </div>
 
             {(record || prescription) && (
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3">
                 <button
                   onClick={printAll}
-                  className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-200 active:scale-95 group"
+                  className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-200 active:scale-95 group"
                 >
                   <Printer className="h-5 w-5 transition-transform group-hover:scale-110" />
                   <span>Historia Médica (+ Receta)</span>
@@ -497,7 +497,7 @@ export default function PatientAppointmentDetailPage() {
                 {prescription && (
                   <button
                     onClick={printPrescription}
-                    className="flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200 active:scale-95 group"
+                    className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold transition-all hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200 active:scale-95 group"
                   >
                     <Download className="h-5 w-5 transition-transform group-hover:scale-110" />
                     <span>Solo Receta Médica</span>
@@ -513,7 +513,7 @@ export default function PatientAppointmentDetailPage() {
           <div className="lg:col-span-2 space-y-8">
             {/* CTA: Completar Pago */}
             {appointment.status?.name === 'pending_payment' && appointment.payment && (
-              <div className="p-8 rounded-[2rem] bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-2xl shadow-amber-500/20 animate-in zoom-in-95 duration-500 relative overflow-hidden group">
+              <div className="p-6 md:p-8 rounded-3xl md:rounded-[2rem] bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-2xl shadow-amber-500/20 animate-in zoom-in-95 duration-500 relative overflow-hidden group">
                 <div className="absolute right-[-20px] top-[-20px] opacity-10 transition-transform group-hover:scale-110 duration-700 pointer-events-none">
                   <DollarSign className="h-48 w-48" />
                 </div>
@@ -603,7 +603,7 @@ export default function PatientAppointmentDetailPage() {
             
             {/* CTA: Questionnaire */}
             {appointment.status?.name !== 'pending_payment' && appointment.status?.name !== 'cancelled' && (!appointment.medical_responses || appointment.medical_responses.length === 0) && (
-              <div className="p-8 rounded-[2rem] bg-gradient-to-br from-primary to-indigo-600 text-white shadow-2xl shadow-primary/20 animate-in zoom-in-95 duration-500 relative overflow-hidden group">
+              <div className="p-6 md:p-8 rounded-3xl md:rounded-[2rem] bg-gradient-to-br from-primary to-indigo-600 text-white shadow-2xl shadow-primary/20 animate-in zoom-in-95 duration-500 relative overflow-hidden group">
                 <div className="absolute right-[-20px] top-[-20px] opacity-10 transition-transform group-hover:scale-110 duration-700">
                   <FileText className="h-48 w-48" />
                 </div>
@@ -790,7 +790,7 @@ export default function PatientAppointmentDetailPage() {
                       {appointment.medical_responses.map((resp) => (
                         <div key={resp.id} className="space-y-2 group">
                           <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest transition-colors group-hover:text-primary">
-                            {resp.question?.question_text || 'Pregunta Médica'}
+                            {resp.question?.question_text || 'Antecedente Patológico / Pregunta Médica'}
                           </h4>
                           <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100/50 text-slate-700 font-medium leading-relaxed shadow-sm">
                             {resp.response_text || 'Sin respuesta'}

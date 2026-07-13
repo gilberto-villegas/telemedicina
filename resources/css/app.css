@@ -160,3 +160,44 @@
   background-clip: text;
   animation: shimmer 2.5s linear infinite;
 }
+/* Responsive Typography */
+@layer base {
+  h1 {
+    @apply text-2xl md:text-4xl lg:text-5xl font-black;
+  }
+  h2 {
+    @apply text-xl md:text-2xl lg:text-3xl font-bold;
+  }
+}
+
+/* Premium Table Scrollbar for Mobile */
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.2) transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-radius: 20px;
+}
+
+/* Mobile Padding Helpers */
+@media (max-width: 640px) {
+  .container-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Force stack grids that might be missed */
+  .grid-mobile-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+}

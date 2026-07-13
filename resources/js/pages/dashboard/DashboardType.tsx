@@ -108,7 +108,7 @@ export default function DashboardType() {
     const StatCard = ({ title, value, icon: Icon, sub, color }: { title: string, value: any, icon: any, sub: string, color: string }) => (
         <Card className="overflow-hidden border-none bg-white/70 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 group">
             <CardContent className="p-0">
-                <div className={`p-6 bg-gradient-to-br ${color} relative overflow-hidden`}>
+                <div className={`p-4 md:p-6 bg-gradient-to-br ${color} relative overflow-hidden`}>
                     <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
                     <div className="flex items-center justify-between relative z-10">
                         <div>
@@ -161,16 +161,16 @@ export default function DashboardType() {
                                     </span>
                                     Sistema Activo
                                 </div>
-                                <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">
+                                <h1 className="text-3xl md:text-5xl font-black text-white leading-tight uppercase">
                                     ¡Hola, {user.first_name}! 👋
                                 </h1>
                                 <p className="text-blue-100 text-lg md:text-xl max-w-xl font-medium leading-relaxed">
                                     Bienvenido a tu portal de salud. Estamos listos para cuidar de ti hoy.
                                 </p>
                             </div>
-                            <div className="flex gap-4">
-                                <Link to={`/dashboard/${user.type}/doctors`}>
-                                    <Button size="lg" className="h-16 px-8 rounded-2xl bg-white text-blue-700 hover:bg-blue-50 text-lg font-bold shadow-xl shadow-blue-900/20 border-none group">
+                            <div className="flex gap-4 w-full md:w-auto">
+                                <Link to={`/dashboard/${user.type}/doctors`} className="w-full md:w-auto">
+                                    <Button size="lg" className="w-full h-16 px-8 rounded-2xl bg-white text-blue-700 hover:bg-blue-50 text-lg font-bold shadow-xl shadow-blue-900/20 border-none group">
                                         Agendar Cita
                                         <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                                     </Button>
@@ -257,7 +257,7 @@ export default function DashboardType() {
                         </div>
 
                         {/* Side Card */}
-                        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 bg-white overflow-hidden">
+                        <Card className="rounded-3xl md:rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 bg-white overflow-hidden">
                             <div className="h-2 bg-gradient-to-r from-blue-600 to-indigo-600" />
                             <CardHeader className="p-8">
                                 <CardTitle className="text-xl font-black">Agenda Médica</CardTitle>
@@ -296,8 +296,8 @@ export default function DashboardType() {
                                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white text-xs font-bold uppercase tracking-widest">
                                     Panel de Especialista
                                 </div>
-                                <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">
-                                    Bienvenido, Dr. {user.last_name}
+                                <h1 className="text-3xl md:text-5xl font-black text-white leading-tight uppercase">
+                                    Bienvenido, <br className="block md:hidden"/> Dr. {user.last_name}
                                 </h1>
                                 <p className="text-blue-100 text-lg font-medium leading-relaxed max-w-xl">
                                     Gestiona tu práctica médica y atiende a tus pacientes con la mejor tecnología.
@@ -438,7 +438,7 @@ export default function DashboardType() {
                         {/* Recent Appointments Placeholder or Side info */}
                         <div className="space-y-6">
                             <h2 className="text-2xl font-black text-slate-800 px-2">Próximas Citas</h2>
-                            <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 bg-white/70 backdrop-blur-xl overflow-hidden p-8 text-center space-y-4">
+                            <Card className="rounded-3xl md:rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 bg-white/70 backdrop-blur-xl overflow-hidden p-6 md:p-8 text-center space-y-4">
                                 <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto border border-dashed border-slate-200">
                                     <Calendar className="h-8 w-8 text-slate-300" />
                                 </div>

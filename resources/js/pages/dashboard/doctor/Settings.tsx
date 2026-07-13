@@ -88,7 +88,7 @@ export default function DoctorSettingsPage() {
     const currentUser = authService.getUser();
     if (!currentUser || currentUser.type !== 'doctor') { navigate(`/dashboard/${currentUser?.type || 'patient'}`); return; }
     setUser(currentUser);
-    api.get('/specialties').then(r => setSpecialties(r.data)).catch(() => {});
+    api.get('/specialties').then(r => setSpecialties(Array.isArray(r.data) ? r.data : [])).catch(() => setSpecialties([]));
     api.get('/auth/me').then(r => {
       const u = r.data.user;
       setFormData({
@@ -109,7 +109,7 @@ export default function DoctorSettingsPage() {
       });
     }).catch(() => {}).finally(() => setLoading(false));
 
-    api.get('/banks').then(r => setBanks(r.data)).catch(() => {});
+    api.get('/banks').then(r => setBanks(Array.isArray(r.data) ? r.data : [])).catch(() => setBanks([]));
   }, [navigate]);
 
   const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -184,7 +184,7 @@ export default function DoctorSettingsPage() {
       <div className="max-w-4xl mx-auto space-y-8 pb-12">
         {/* Header */}
         {/* Header Section (Revisado para Estilo Premium) */}
-        <div className="relative overflow-hidden rounded-[2.5rem] p-8 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-2xl shadow-blue-500/20 mb-8">
+        <div className="relative overflow-hidden rounded-3xl md:rounded-[2.5rem] p-6 md:p-8 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-2xl shadow-blue-500/20 mb-8">
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-700" />
           
@@ -220,7 +220,7 @@ export default function DoctorSettingsPage() {
                 <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                 <span className="text-xs font-black uppercase tracking-[0.2em]">Panel Principal</span>
               </Link>
-              <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight uppercase mb-2">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight uppercase mb-2">
                 Configuración <span className="text-blue-200">Profesional</span>
               </h1>
               <p className="text-blue-100/80 font-medium text-lg max-w-lg mb-6">Gestiona tu identidad digital, especialidad y métodos de recaudación.</p>
@@ -479,8 +479,8 @@ export default function DoctorSettingsPage() {
                             const fd = new FormData();
                             fd.append('stamp', file);
                             try {
-                                const res = await api.post('/auth/stamp', fd);
-                                setFormData(prev => ({ ...prev, digital_stamp: res.data.url }));
+                                const response = await api.post('/auth/stamp', fd);
+                                setFormData(prev => ({ ...prev, digital_stamp: response.data.url }));
                             } catch (err) {
                                 alert('Error al subir el sello');
                             }

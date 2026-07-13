@@ -114,9 +114,9 @@ export default function AdminDashboard() {
 
     return (
         <DashboardLayout user={user}>
-            <div className="max-w-7xl mx-auto space-y-10 pb-12 uppercase relative z-10">
+            <div className="max-w-7xl mx-auto space-y-6 md:space-y-10 pb-12 uppercase relative z-10">
                 {/* Header Section (Doctor Style Sync) */}
-                <div className="relative overflow-hidden rounded-[3rem] p-10 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-2xl shadow-blue-500/20">
+                <div className="relative overflow-hidden rounded-3xl md:rounded-[3rem] p-6 md:p-10 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-2xl shadow-blue-500/20">
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -mr-40 -mt-40 blur-3xl animate-pulse" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full -ml-20 -mb-20 blur-3xl" />
                     
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
                         <div className="flex-shrink-0">
                             <Button 
                                 onClick={copyRegistrationLink}
-                                className={`h-14 px-8 rounded-2xl font-black text-xs tracking-widest transition-all uppercase shadow-2xl ${
+                                className={`w-full md:w-auto h-14 px-8 rounded-2xl font-black text-[10px] md:text-xs tracking-widest transition-all uppercase shadow-2xl ${
                                     copied 
                                     ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
                                     : 'bg-white text-blue-700 hover:bg-blue-50'
@@ -244,8 +244,8 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-black text-slate-800 px-6 tracking-tighter uppercase">ACCESO RÁPIDO</h2>
-                        <Card className="rounded-[3rem] border border-white/40 shadow-2xl shadow-slate-200 bg-white/70 backdrop-blur-xl overflow-hidden p-10 text-center space-y-8 group hover:bg-white/90 transition-all duration-500">
+                        <h2 className="text-xl md:text-2xl font-black text-slate-800 px-6 tracking-tighter uppercase">ACCESO RÁPIDO</h2>
+                        <Card className="rounded-3xl md:rounded-[3rem] border border-white/40 shadow-2xl shadow-slate-200 bg-white/70 backdrop-blur-xl overflow-hidden p-6 md:p-10 text-center space-y-8 group hover:bg-white/90 transition-all duration-500">
                             <div className="h-24 w-24 bg-blue-600 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-blue-500/20 group-hover:scale-110 transition-transform">
                                 <UserPlus className="h-10 w-10 text-white" />
                             </div>
@@ -264,7 +264,7 @@ export default function AdminDashboard() {
 
                         {/* Recent Activity Mini Widget */}
                         <h2 className="text-xl font-black text-slate-800 px-6 tracking-tighter mt-12 uppercase">ACTIVIDAD RECIENTE</h2>
-                        <Card className="rounded-[3rem] border border-white/40 shadow-2xl shadow-slate-100 bg-white/70 backdrop-blur-xl overflow-hidden p-8 hover:bg-white/90 transition-all duration-500">
+                        <Card className="rounded-3xl md:rounded-[3rem] border border-white/40 shadow-2xl shadow-slate-100 bg-white/70 backdrop-blur-xl overflow-hidden p-6 md:p-8 hover:bg-white/90 transition-all duration-500">
                             <div className="space-y-5">
                                 {[
                                     { text: "NUEVA ESPECIALIDAD: NEUROLOGÍA", time: "HACE 5 MIN", icon: Activity, color: "text-blue-500" },

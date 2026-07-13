@@ -18,7 +18,7 @@ export const initializeNotificationSocket = (): Socket | null => {
   }
 
   const ENABLE_SOCKETS = import.meta.env.VITE_ENABLE_SOCKETS === 'true';
-  if (!ENABLE_SOCKETS) {
+  if (!ENABLE_SOCKETS || ENABLE_SOCKETS === undefined) {
     return null;
   }
 

@@ -4,6 +4,8 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import DashboardType from './pages/dashboard/DashboardType';
 import DoctorAppointments from './pages/dashboard/doctor/Appointments';
 import DoctorAppointmentDetail from './pages/dashboard/doctor/AppointmentDetail';
@@ -49,6 +51,8 @@ export default function AppRoutes() {
             <Route path="/auth">
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="reset-password" element={<ResetPassword />} />
             </Route>
 
             <Route path="/dashboard">

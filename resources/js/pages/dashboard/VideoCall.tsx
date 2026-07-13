@@ -37,16 +37,22 @@ export default function VideoCallPage() {
     loadAppointment();
 
     // Socket para notificaciones de chat en vivo
-    const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
-    const socket = io(WS_URL);
-    
-    socket.on('connect', () => {
-      if (currentUser) socket.emit('join-user', currentUser.id);
-    });
+    const ENABLE_SOCKETS = import.meta.env.VITE_ENABLE_SOCKETS === 'true';
+    let socket: any = null;
 
-    socket.on('new-message', () => {
-        setHasNewMessage(true);
-    });
+    if (ENABLE_SOCKETS) {
+      const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+      socket = io(WS_URL);
+      
+      socket.on('connect', () => {
+        if (currentUser) socket.emit('join-user', currentUser.id);
+      });
+
+      socket.on('new-message', () => {
+          setHasNewMessage(true);
+          setShowChat(true); // Auto-abrir chat al recibir mensaje
+      });
+    }
 
     // Cargar script de Jitsi
     const script = document.createElement('script');
@@ -58,7 +64,7 @@ export default function VideoCallPage() {
       if (apiRef.current) {
         apiRef.current.dispose();
       }
-      socket.disconnect();
+      if (socket) socket.disconnect();
       document.body.removeChild(script);
     };
   }, [id]);
@@ -94,7 +100,7 @@ export default function VideoCallPage() {
     if (!loading && appointment && user && jitsiContainerRef.current) {
       const domain = 'meet.jit.si';
       const options = {
-        roomName: appointment.video_room_id || `Telemed-${appointment.id}`,
+        roomName: appointment.video_room_id || `Telemed-${id?.substring(0, 8)}`,
         width: '100%',
         height: '100%',
         parentNode: jitsiContainerRef.current,
@@ -104,7 +110,7 @@ export default function VideoCallPage() {
         },
         lang: 'es',
         configOverwrite: {
-          prejoinPageEnabled: true, // Habilitar para que el usuario pueda seleccionar dispositivos
+          prejoinPageEnabled: false, // Desactivar temporalmente para probar conexión directa
           startWithAudioMuted: false,
           startWithVideoMuted: false,
           disableDeepLinking: true,
@@ -112,6 +118,8 @@ export default function VideoCallPage() {
           enableNoAudioDetection: true,
           enableNoVideoDetection: true,
           resolution: 480,
+          p2p: { enabled: false }, // Muy importante para estabilidad en ngrok
+          doNotStoreRoom: true,
         },
         interfaceConfigOverwrite: {
           TOOLBAR_BUTTONS: [
@@ -123,15 +131,16 @@ export default function VideoCallPage() {
           ],
           SHOW_JITSI_WATERMARK: false,
           SHOW_WATERMARK_FOR_GUESTS: false,
-          DEFAULT_REMOTE_DISPLAY_NAME: 'Paciente',
+          DEFAULT_REMOTE_DISPLAY_NAME: 'Participante',
         },
         featureFlags: {
             'call-stats.enabled': true,
             'pip.enabled': true,
-            'ios.screensharing.enabled': true,
-            'prejoinpage.enabled': true,
+            'prejoinpage.enabled': false,
             'welcomepage.enabled': false,
             'chrome-extension-banner.enabled': false,
+            'help.enabled': false,
+            'lobby-mode.enabled': false, // Desactivar lobby explícitamente
         }
       };
 
@@ -182,7 +191,7 @@ export default function VideoCallPage() {
   }
 
   return (
-    <DashboardLayout user={user}>
+    <DashboardLayout user={user} hideNavigation={true}>
       <div className="flex flex-col h-[calc(100vh-120px)]">
         <div className="flex items-center justify-between mb-4">
           <div>

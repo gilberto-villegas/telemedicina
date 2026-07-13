@@ -42,9 +42,10 @@ export default function RegisterPage() {
   const loadSpecialties = async () => {
     try {
       const response = await api.get('/specialties');
-      setSpecialties(response.data);
+      setSpecialties(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('Error loading specialties:', err);
+      setSpecialties([]);
     }
   };
 

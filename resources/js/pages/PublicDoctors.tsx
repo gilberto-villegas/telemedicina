@@ -47,9 +47,10 @@ export default function PublicDoctors() {
   const loadSpecialties = async () => {
     try {
       const res = await api.get('/specialties');
-      setSpecialties(res.data);
+      setSpecialties(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Error loading specialties:', err);
+      setSpecialties([]);
     }
   };
 
@@ -66,10 +67,11 @@ export default function PublicDoctors() {
         }
       });
       
+      const newData = Array.isArray(res.data.data) ? res.data.data : [];
       if (append) {
-        setDoctors(prev => [...prev, ...res.data.data]);
+        setDoctors(prev => [...prev, ...newData]);
       } else {
-        setDoctors(res.data.data);
+        setDoctors(newData);
       }
       
       setMeta({

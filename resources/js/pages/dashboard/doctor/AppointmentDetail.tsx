@@ -105,7 +105,7 @@ function PremiumCard({ title, icon: Icon, children, action }: { title: string; i
         </div>
         {action}
       </div>
-      <div className="relative p-8">{children}</div>
+      <div className="relative p-4 md:p-8">{children}</div>
     </div>
   );
 }
@@ -463,10 +463,10 @@ export default function DoctorAppointmentDetailPage() {
                 </div>
               </div>
               <div>
-                <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-2 uppercase">
+                <h1 className="text-2xl md:text-5xl font-black text-slate-900 tracking-tight mb-2 uppercase leading-tight">
                   Gestión de <span className="text-blue-600">Consulta</span>
                 </h1>
-                <p className="text-lg text-slate-500 font-medium">
+                <p className="text-sm md:text-lg text-slate-500 font-medium">
                   {formattedDate} de {formattedYear} <span className="mx-2 text-slate-300">•</span> {formattedTime} — {endTimeFormatted} hrs
                 </p>
               </div>
@@ -616,7 +616,7 @@ export default function DoctorAppointmentDetailPage() {
                       {appointment.medical_responses.map((resp) => (
                         <div key={resp.id} className="space-y-4 group">
                           <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest transition-colors group-hover:text-blue-500">
-                            {resp.question?.question_text || 'Pregunta Médica'}
+                            {resp.question?.question_text || 'Antecedente Patológico / Pregunta Médica'}
                           </h4>
                           <div className="flex gap-10">
                             <div className="flex-1 p-5 rounded-2xl bg-slate-50 border border-slate-100/50 text-slate-700 font-medium leading-relaxed shadow-sm">
@@ -717,8 +717,8 @@ export default function DoctorAppointmentDetailPage() {
                 </div>
               </PremiumCard>
             ) : statusName === 'completed' && (
-              <div className="p-12 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center text-center">
-                 <FileText className="h-12 w-12 text-slate-300 mb-4" />
+              <div className="p-6 md:p-12 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center text-center">
+                 <FileText className="h-8 md:h-12 w-8 md:w-12 text-slate-300 mb-4" />
                  <h3 className="font-bold text-slate-800">Informe Médico Pendiente</h3>
                  <p className="text-slate-500 text-sm mb-8">Esta cita ha finalizado pero aún no has registrado el informe SOAP.</p>
                  <Link to={`/dashboard/doctor/appointments/${id}/post-consultation`}>

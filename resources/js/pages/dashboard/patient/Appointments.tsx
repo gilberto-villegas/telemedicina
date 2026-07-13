@@ -53,14 +53,14 @@ function AppointmentCard({ apt, onCancel }: {
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       <div className="flex items-stretch">
         {/* Date strip */}
-        <div className="bg-gradient-to-b from-blue-600 to-indigo-600 flex flex-col items-center justify-center px-4 py-5 min-w-[72px] text-white text-center">
-          <span className="text-xs font-medium opacity-80 uppercase">{format(date, 'MMM', { locale: es })}</span>
-          <span className="text-2xl font-black">{format(date, 'd')}</span>
-          <span className="text-xs opacity-70">{format(date, 'HH:mm')}</span>
+        <div className="bg-gradient-to-b from-blue-600 to-indigo-600 flex flex-col md:flex-col items-center justify-center px-2 md:px-4 py-3 md:py-5 min-w-[60px] md:min-w-[72px] text-white text-center">
+          <span className="text-[10px] md:text-xs font-medium opacity-80 uppercase">{format(date, 'MMM', { locale: es })}</span>
+          <span className="text-xl md:text-2xl font-black">{format(date, 'd')}</span>
+          <span className="text-[10px] md:text-xs opacity-70">{format(date, 'HH:mm')}</span>
         </div>
 
-        <div className="flex-1 p-5">
-          <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 p-4 md:p-5">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border border-slate-100">
@@ -92,7 +92,7 @@ function AppointmentCard({ apt, onCancel }: {
               )}
             </div>
 
-            <div className="flex flex-col gap-2 flex-shrink-0 w-28">
+            <div className="flex flex-row md:flex-col gap-2 flex-wrap md:flex-nowrap w-full md:w-32 border-t md:border-t-0 pt-4 md:pt-0">
               {apt.status_name === 'pending_payment' && (
                 <Link to={`/dashboard/patient/appointments/${apt.id}`}>
                   <button className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-400 to-amber-500 text-white text-xs font-bold hover:shadow-md transition-all w-full">
@@ -243,10 +243,10 @@ export default function PatientAppointmentsPage() {
 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
             <div>
-              <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-2 uppercase">
+              <h1 className="text-2xl md:text-5xl font-black text-slate-900 tracking-tight mb-2 uppercase leading-tight">
                 Mis <span className="text-blue-600">Consultas</span>
               </h1>
-              <p className="text-lg text-slate-500 font-medium">Gestiona tu historial y próximas citas médicas</p>
+              <p className="text-sm md:text-lg text-slate-500 font-medium font-bold">Gestiona tu historial y próximas citas médicas</p>
             </div>
             <Link to="/dashboard/patient/doctors">
               <button className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-200 active:scale-95 group">

@@ -30,6 +30,7 @@ import { useNotificationsContext } from '@/contexts/NotificationsContext';
 interface DashboardLayoutProps {
   children: React.ReactNode;
   user: User;
+  hideNavigation?: boolean;
 }
 
 interface NavItem {
@@ -39,14 +40,14 @@ interface NavItem {
   id?: string;
 }
 
-export function DashboardLayout({ children, user }: DashboardLayoutProps) {
+export function DashboardLayout({ children, user, hideNavigation = false }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const pathname = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { unreadCount } = useNotificationsContext();
   const isAdmin = user?.type?.toLowerCase() === 'admin';
   const isDoctor = user?.type?.toLowerCase() === 'doctor';
-  const showSidebar = true; // El sidebar debe mostrarse para todos los roles registrados
+  const showSidebar = !hideNavigation; // El sidebar se oculta en modo enfoque
 
   const handleLogout = () => {
     authService.logout();
@@ -200,10 +201,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           <div 
             style={{ 
               position: 'fixed', 
-              top: 0, 
-              left: 0, 
-              width: '100vw', 
-              height: '100vh', 
+              inset: 0, 
               zIndex: -1, 
               pointerEvents: 'none',
               backgroundColor: '#f8fafc'
@@ -237,8 +235,8 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                 </Button>
               )}
 
-              <div className="flex items-center gap-4 ml-auto">
-                <NotificationBell />
+              <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+                {!hideNavigation && <NotificationBell />}
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium">
                     {user.first_name} {user.last_name}
@@ -265,7 +263,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8" id="dashboard-main">
+        <main className="p-3 sm:p-6 lg:p-8" id="dashboard-main">
           {children}
         </main>
 

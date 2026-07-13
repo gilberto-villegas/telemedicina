@@ -43,14 +43,6 @@ class NotificationService
             // Obtener canales a usar
             $channelsToUse = $this->determineChannels($user, $preferences, $channels, $type);
 
-            if (empty($channelsToUse)) {
-                Log::warning('NotificationService: No hay canales disponibles', [
-                    'user_id' => $user->id,
-                    'type' => $type,
-                ]);
-                return null;
-            }
-
             // Renderizar template
             $rendered = $this->templateManager->renderTemplate($type, array_merge([
                 'user_name' => $user->full_name,
@@ -66,8 +58,16 @@ class NotificationService
                 ];
             }
 
-            // Crear notificación
+            // Crear notificación (Siempre se guarda en DB para soporte de polling)
             $notification = $this->createNotification($user, $type, $data, $channelsToUse);
+
+            if (empty($channelsToUse)) {
+                Log::info('NotificationService: No hay canales externos configurados, servida vía base de datos', [
+                    'user_id' => $user->id,
+                    'type' => $type,
+                ]);
+                return $notification;
+            }
 
             // Enviar a través de cada canal
             foreach ($channelsToUse as $channelName) {

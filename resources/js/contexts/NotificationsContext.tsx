@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useUnreadNotificationsCount } from '../lib/hooks/useNotifications';
 import { useFCMToken } from '../lib/hooks/useFCMToken';
 import { subscribeToNotifications } from '../lib/notifications/socket';
-import { Notification } from '../lib/api/notifications';
+import { Notification, notificationService } from '../lib/api/notifications';
 
 interface NotificationsContextType {
   unreadCount: number;
@@ -14,26 +14,59 @@ interface NotificationsContextType {
   fcmToken: string | null;
   fcmPermission: NotificationPermission;
   isFCMLoading: boolean;
+  incomingCall: Notification | null;
+  setIncomingCall: (call: Notification | null) => void;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
 
 export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Solo cargar notificaciones si hay token
-  const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const hasToken = !!token;
+  
   const { count, isLoading, refetch } = useUnreadNotificationsCount();
   const { token: fcmToken, permission: fcmPermission, isLoading: isFCMLoading } = useFCMToken();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [incomingCall, setIncomingCall] = useState<Notification | null>(null);
 
   const addNotification = useCallback((notification: Notification) => {
     setNotifications((prev) => [notification, ...prev]);
     // Refrescar contador
     refetch();
+
+    // Si es una videollamada entrante, activarla
+    if (notification.type === 'videocall_incoming') {
+      setIncomingCall(notification);
+    }
   }, [refetch]);
 
   const refreshCount = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  // Polling como fallback ante falta de websockets
+  useEffect(() => {
+    if (!hasToken) return;
+
+    const poll = async () => {
+      try {
+        const result = await notificationService.list({ unread: true, per_page: 5 });
+        const pendingCall = result.data.find(n => n.type === 'videocall_incoming');
+        
+        if (pendingCall && (!incomingCall || pendingCall.id !== incomingCall.id)) {
+          setIncomingCall(pendingCall);
+        }
+      } catch (error) {
+        // Silenciar errores de red en polling
+      }
+    };
+
+    poll(); // Ejecutar inmediatamente al montar/token cambiado
+    const pollInterval = setInterval(poll, 6000);
+
+    return () => clearInterval(pollInterval);
+  }, [hasToken, incomingCall]);
 
   // Suscribirse a notificaciones en tiempo real vía WebSocket (solo si hay token)
   useEffect(() => {
@@ -58,6 +91,8 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     fcmToken,
     fcmPermission,
     isFCMLoading,
+    incomingCall,
+    setIncomingCall,
   };
 
   return (

@@ -74,21 +74,26 @@ export default function ChatPage() {
     loadChats();
 
     // Conectar al socket
-    const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
-    const socket = io(WS_URL);
-    socketRef.current = socket;
+    const ENABLE_SOCKETS = import.meta.env.VITE_ENABLE_SOCKETS === 'true';
+    if (ENABLE_SOCKETS) {
+      const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+      const socket = io(WS_URL);
+      socketRef.current = socket;
 
-    socket.on('connect', () => {
-      socket.emit('join-user', currentUser.id);
-    });
+      socket.on('connect', () => {
+        socket.emit('join-user', currentUser.id);
+      });
 
-    socket.on('new-message', (message: Message) => {
-      setMessages(prev => [...prev, message]);
-      scrollToBottom();
-    });
+      socket.on('new-message', (message: Message) => {
+        setMessages(prev => [...prev, message]);
+        scrollToBottom();
+      });
+    }
 
     return () => {
-      socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
   }, [navigate]);
 
@@ -98,6 +103,11 @@ export default function ChatPage() {
       if (socketRef.current) {
         socketRef.current.emit('join-chat', selectedChat.id);
       }
+      
+      const interval = setInterval(() => {
+        loadMessages(selectedChat.id);
+      }, 5000);
+      return () => clearInterval(interval);
     }
   }, [selectedChat]);
 
@@ -188,6 +198,8 @@ export default function ChatPage() {
       </div>
     );
   }
+
+  const isChatActive = selectedChat ? (selectedChat.status !== 'completed' || (new Date().getTime() - new Date(selectedChat.start_time || Date.now()).getTime()) < 24 * 60 * 60 * 1000) : false;
 
   return (
     <DashboardLayout user={user}>
@@ -356,9 +368,10 @@ export default function ChatPage() {
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Escribe un mensaje..."
+                    placeholder={isChatActive ? "Escribe un mensaje..." : "Chat deshabilitado (Consulta finalizada hace > 24h)"}
+                    disabled={!isChatActive}
                   />
-                  <Button type="submit" disabled={!newMessage.trim()}>
+                  <Button type="submit" disabled={!newMessage.trim() || !isChatActive}>
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>

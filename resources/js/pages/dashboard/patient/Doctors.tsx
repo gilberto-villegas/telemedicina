@@ -72,7 +72,7 @@ export default function DoctorsPage() {
         api.get('/doctors'),
         api.get('/specialties')
       ]);
-      setDoctors(Array.isArray(doctorsRes.data) ? doctorsRes.data : []);
+      setDoctors(Array.isArray(doctorsRes.data) ? doctorsRes.data : (doctorsRes.data.data || []));
       setAllSpecialties(Array.isArray(specsRes.data) ? specsRes.data : []);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -131,25 +131,25 @@ export default function DoctorsPage() {
       <div className="max-w-7xl mx-auto space-y-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
-            <Link to="/dashboard/patient" className="group inline-flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors mb-4">
+            <Link to="/dashboard/patient" className="group inline-flex items-center gap-2 text-slate-600 hover:text-blue-800 transition-colors mb-4">
               <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
               <span className="text-sm font-bold uppercase tracking-widest">Panel Principal</span>
             </Link>
-            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Nuestros Especialistas
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase leading-tight">
+              Nuestros <br className="block md:hidden"/> Especialistas
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl">
-              Encuentra atención médica de primer nivel con los mejores profesionales en cada especialidad.
+            <p className="text-sm md:text-xl text-slate-600 max-w-2xl font-medium">
+              Atención médica de primer nivel con los mejores profesionales.
             </p>
           </div>
           
           <div className="relative w-full md:w-96 group">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-500 group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="Buscar médico por nombre..."
+              placeholder="Buscar médico..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 h-14 rounded-2xl shadow-sm border-muted-foreground/20 focus-visible:ring-primary/30 transition-all text-lg"
+              className="pl-12 h-12 md:h-14 rounded-2xl shadow-sm border-muted-foreground/20 focus-visible:ring-primary/30 transition-all text-sm md:text-lg"
             />
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function DoctorsPage() {
                 <Button 
                   variant="ghost" 
                   onClick={handleBackToSearch}
-                  className="rounded-xl flex items-center gap-2 text-muted-foreground hover:text-primary"
+                  className="rounded-xl flex items-center gap-2 text-slate-600 font-medium hover:text-primary hover:bg-slate-100"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Volver a especialidades
@@ -192,7 +192,7 @@ export default function DoctorsPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-xl font-semibold">No se encontraron especialistas</p>
-                    <p className="text-muted-foreground">Actualmente no tenemos médicos registrados en esta especialidad.</p>
+                    <p className="text-slate-600 font-medium">Actualmente no tenemos médicos registrados en esta especialidad.</p>
                   </div>
                   <Button variant="outline" onClick={handleBackToSearch} className="rounded-xl">
                     Ver otras especialidades
@@ -220,8 +220,8 @@ export default function DoctorsPage() {
                             <CardTitle className="text-xl font-bold group-hover:text-primary transition-colors">
                               Dr. {doctor.first_name} {doctor.last_name}
                             </CardTitle>
-                            <div className="flex items-center text-sm text-muted-foreground font-medium">
-                              <span className="bg-accent px-2 py-0.5 rounded">
+                            <div className="flex items-center text-sm text-slate-600 font-semibold">
+                              <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-md">
                                 {typeof doctor.specialty === 'object' ? (doctor.specialty?.name || 'Médico') : (doctor.specialty || 'Médico')}
                               </span>
                             </div>
@@ -237,18 +237,18 @@ export default function DoctorsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="pt-6 space-y-6">
-                      <div className="flex items-center justify-between p-4 bg-accent/30 rounded-2xl">
+                      <div className="flex items-center justify-between p-4 bg-slate-50/80 border border-slate-100 rounded-2xl">
                         <div className="flex items-center gap-2">
-                          <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                          <span className="font-bold text-lg">
+                          <Star className="h-5 w-5 fill-yellow-400 text-yellow-400 shadow-sm" />
+                          <span className="font-bold text-lg text-slate-800">
                             {doctor.rating != null && !isNaN(Number(doctor.rating))
                               ? Number(doctor.rating).toFixed(1)
                               : '4.5'}
                           </span>
-                          <span className="text-xs text-muted-foreground">(Promedio)</span>
+                          <span className="text-xs text-slate-500 font-medium">(Promedio)</span>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Por consulta</p>
+                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Por consulta</p>
                           <p className="font-black text-xl text-primary">${doctor.consultation_price_usd}</p>
                         </div>
                       </div>
@@ -264,11 +264,6 @@ export default function DoctorsPage() {
                           Agendar Cita
                           <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
-                        <Link to={`/dashboard/patient/chat?doctor=${doctor.id}`}>
-                          <Button variant="outline" className="h-12 w-12 rounded-xl border-slate-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all p-0">
-                            <MessageSquare className="h-6 w-6" />
-                          </Button>
-                        </Link>
                       </div>
                     </CardContent>
                   </Card>

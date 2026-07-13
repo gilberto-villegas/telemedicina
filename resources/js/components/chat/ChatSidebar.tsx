@@ -26,6 +26,7 @@ interface ChatSidebarProps {
 }
 
 export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps) {
+  const [chatInfo, setChatInfo] = useState<any>(null);
   const [chatId, setChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -36,28 +37,28 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
   useEffect(() => {
     loadChat();
 
-    const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
-    const socket = io(WS_URL);
-    socketRef.current = socket;
+    const ENABLE_SOCKETS = import.meta.env.VITE_ENABLE_SOCKETS === 'true';
+    if (ENABLE_SOCKETS) {
+      const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+      const socket = io(WS_URL);
+      socketRef.current = socket;
 
-    socket.on('connect', () => {
-      socket.emit('join-user', userId);
-    });
+      socket.on('connect', () => {
+        socket.emit('join-user', userId);
+      });
 
-    socket.on('new-message', (message: Message) => {
-      // Solo añadir si el mensaje pertenece a este chat (esto es una simplificación, 
-      // idealmente el servidor debería filtrar por room)
-      setMessages(prev => [...prev, message]);
-      scrollToBottom();
-      
-      // Notificación sonora/visual simple si está abierto
-      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-          // Podríamos lanzar una notificación aquí si quisiéramos
-      }
-    });
+      socket.on('new-message', (message: Message) => {
+        // Solo añadir si el mensaje pertenece a este chat (esto es una simplificación, 
+        // idealmente el servidor debería filtrar por room)
+        setMessages(prev => [...prev, message]);
+        scrollToBottom();
+      });
+    }
 
     return () => {
-      socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
   }, [appointmentId, userId]);
 
@@ -67,6 +68,11 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
       if (socketRef.current) {
         socketRef.current.emit('join-chat', chatId);
       }
+      
+      const interval = setInterval(() => {
+        loadMessages(chatId);
+      }, 5000);
+      return () => clearInterval(interval);
     }
   }, [chatId]);
 
@@ -81,6 +87,7 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
       const chat = response.data?.find((c: any) => c.id === appointmentId || c.appointment_id === appointmentId);
       if (chat) {
         setChatId(chat.id);
+        setChatInfo(chat);
       }
     } catch (error) {
       console.error('Error loading chat for appointment:', error);
@@ -142,6 +149,8 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const isChatActive = chatInfo ? (chatInfo.status !== 'completed' || (new Date().getTime() - new Date(chatInfo.start_time || Date.now()).getTime()) < 24 * 60 * 60 * 1000) : true;
+
   return (
     <div className="flex flex-col h-full bg-white border-l w-full sm:w-80 shadow-2xl animate-in slide-in-from-right duration-300">
       <div className="p-4 border-b flex items-center justify-between bg-slate-50">
@@ -202,12 +211,13 @@ export function ChatSidebar({ appointmentId, userId, onClose }: ChatSidebarProps
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Escribe un mensaje..."
+            placeholder={isChatActive ? "Escribe un mensaje..." : "Chat deshabilitado (Consulta finalizada)"}
             className="rounded-xl border-slate-200 focus:ring-blue-500"
+            disabled={!isChatActive}
           />
           <Button 
             type="submit"
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() || !isChatActive}
             className="bg-blue-600 hover:bg-blue-700 rounded-xl px-3"
           >
             <Send className="h-4 w-4" />

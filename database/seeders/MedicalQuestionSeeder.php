@@ -14,7 +14,7 @@ class MedicalQuestionSeeder extends Seeder
     {
         $questions = [
             [
-                'question_text' => '1. ¿Qué problema de salud está motivando esta Videoconsulta?',
+                'question_text' => '1. ¿Qué problema de salud está motivando esta consulta?',
                 'type' => 'text',
                 'order' => 1,
                 'is_required' => true,
@@ -40,12 +40,12 @@ class MedicalQuestionSeeder extends Seeder
             [
                 'question_text' => '5. ¿Tiene Ud. algún diagnóstico previo? Por favor indíquelo a continuación:',
                 'type' => 'select',
-                'options' => ['No', 'Sí, Hipertensión', 'Sí, Diabetes', 'Sí, Otros (especificar)'],
+                'options' => ['No', 'Sí, Hipertensión', 'Sí, Diabetes', 'Sí, Asma', 'Sí, Otros (especificar)'],
                 'order' => 5,
                 'is_required' => true,
             ],
             [
-                'question_text' => '6. ¿Qué dudas quiere aclarar en esta Videoconsulta? Haga todas las preguntas que considere.',
+                'question_text' => '6. ¿Qué dudas quiere aclarar en esta consulta? Haga todas las preguntas que considere.',
                 'type' => 'text',
                 'order' => 6,
                 'is_required' => true,

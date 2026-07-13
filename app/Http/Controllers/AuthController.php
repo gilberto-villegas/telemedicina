@@ -9,6 +9,17 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use App\Mail\ResetPasswordMail;
+use Carbon\Carbon;
+function getAppUrl() {
+    if (request()->header('x-original-host')) {
+        return 'https://' . request()->header('x-original-host');
+    }
+    return request()->getSchemeAndHttpHost();
+}
 
 class AuthController extends Controller
 {
@@ -213,19 +224,48 @@ class AuthController extends Controller
 
     public function uploadStamp(Request $request): JsonResponse
     {
-        $request->validate([
-            'stamp' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+        Log::info('Checking Stamp Upload:', [
+            'has_file' => $request->hasFile('stamp'),
+            'file_name' => $request->hasFile('stamp') ? $request->file('stamp')->getClientOriginalName() : 'none',
+            'file_size' => $request->hasFile('stamp') ? $request->file('stamp')->getSize() : 0,
+            'all_files' => array_keys($request->allFiles()),
+            'headers' => $request->headers->all(),
         ]);
 
-        if ($request->hasFile('stamp')) {
-            $stamp = $request->file('stamp');
-            $filename = time() . '.' . $stamp->getClientOriginalExtension();
-            $path = $stamp->storeAs('public/stamps', $filename);
-            $url = asset('storage/stamps/' . $filename);
-
-            return response()->json([
-                'url' => $url
+        try {
+            $validator = Validator::make($request->all(), [
+                'stamp' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
             ]);
+
+            if ($validator->fails()) {
+                Log::warning('Stamp Validation Failed:', [
+                    'errors' => $validator->errors()->toArray(),
+                    'input' => $request->except(['stamp']),
+                ]);
+                return response()->json([
+                    'message' => 'Error de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            if ($request->hasFile('stamp')) {
+                $stamp = $request->file('stamp');
+                $filename = time() . '.' . $stamp->getClientOriginalExtension();
+                $path = $stamp->storeAs('public/stamps', $filename);
+                $url = asset('storage/stamps/' . $filename);
+
+                Log::info('Stamp Uploaded Successfully:', ['path' => $path, 'url' => $url]);
+
+                return response()->json([
+                    'url' => $url
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Exception during stamp upload:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Error interno del servidor'], 500);
         }
 
         return response()->json(['message' => 'No se subió ningún archivo'], 400);
@@ -233,17 +273,89 @@ class AuthController extends Controller
 
     public function forgotPassword(Request $request): JsonResponse
     {
-        // TODO: Implementar recuperación de contraseña
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.exists' => 'No encontramos ningún usuario con ese correo electrónico.'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $token = Str::random(64);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'email' => $request->email,
+                'token' => Hash::make($token),
+                'created_at' => Carbon::now()
+            ]
+        );
+
+        $baseUrl = getAppUrl();
+        $url = $baseUrl . "/auth/reset-password?token=" . $token . "&email=" . urlencode($request->email);
+
+        try {
+            Mail::to($request->email)->send(new ResetPasswordMail($url, $request->email));
+        } catch (\Exception $e) {
+            Log::error('Error sending reset password mail: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'No pudimos enviar el correo de recuperación. Por favor intenta más tarde.'
+            ], 500);
+        }
+
         return response()->json([
-            'message' => 'Funcionalidad en desarrollo'
-        ], 501);
+            'message' => 'Se ha enviado un enlace de recuperación a tu correo electrónico.'
+        ]);
     }
 
     public function resetPassword(Request $request): JsonResponse
     {
-        // TODO: Implementar reset de contraseña
+        $validator = Validator::make($request->all(), [
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $reset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$reset || !Hash::check($request->token, $reset->token)) {
+            return response()->json([
+                'message' => 'El token es inválido o ha expirado.'
+            ], 400);
+        }
+
+        // Verificar expiración (60 min por defecto)
+        if (Carbon::parse($reset->created_at)->addMinutes(60)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return response()->json([
+                'message' => 'El enlace de recuperación ha expirado.'
+            ], 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
         return response()->json([
-            'message' => 'Funcionalidad en desarrollo'
-        ], 501);
+            'message' => 'Tu contraseña ha sido actualizada correctamente.'
+        ]);
     }
 }

@@ -335,7 +335,7 @@ export default function AdminPayments() {
                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fecha</p>
                          <p className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                            {selectedPayment.payment_date ? format(new Date(selectedPayment.payment_date), 'dd/MM/yyyy') : 'N/A'}
+                            {selectedPayment.payment_date ? format(new Date(selectedPayment.payment_date + 'T12:00:00'), 'dd/MM/yyyy') : format(new Date(selectedPayment.created_at), 'dd/MM/yyyy')}
                          </p>
                       </div>
                       <div className="space-y-1">

@@ -119,7 +119,7 @@ class AppointmentController extends Controller
         }
 
         // Formatear respuesta para incluir appointment_date
-        $appointment->load(['status', 'patient', 'payment.status', 'medicalResponses', 'attachments']);
+        $appointment->load(['status', 'patient', 'payment.status', 'medicalResponses.question', 'attachments']);
         $appointmentData = $appointment->toArray();
         $appointmentData['status_label'] = $appointment->status ? $appointment->status->label : 'Desconocido';
         
@@ -282,6 +282,30 @@ class AppointmentController extends Controller
 
         if ($appointment->isDirty()) {
             $appointment->save();
+        }
+
+        // Notificar al paciente si el doctor es quien se une
+        if ($user->id === $appointment->doctor_id && $appointment->type === 'videoconsulta') {
+            Log::info('AppointmentController: Iniciando notificación de videollamada', [
+                'appointment_id' => $appointment->id,
+                'patient_id' => $appointment->patient_id,
+                'doctor_id' => $user->id
+            ]);
+            try {
+                $notificationService = app(\App\Services\Notifications\NotificationService::class);
+                $res = $notificationService->send($appointment->patient, 'videocall_incoming', [
+                    'title' => 'Videollamada con Dr. ' . $user->last_name,
+                    'message' => 'El doctor te está llamando. Haz clic para contestar.',
+                    'appointment_id' => $appointment->id,
+                    'doctor_name' => 'Dr. ' . $user->last_name,
+                    'room_id' => $appointment->video_room_id,
+                    'urgent' => true,
+                ], ['push']);
+
+                Log::info('AppointmentController: Notificación enviada', ['notification_id' => $res->id ?? 'error']);
+            } catch (\Exception $e) {
+                Log::error('AppointmentController: Error enviando notificación: ' . $e->getMessage());
+            }
         }
 
         return response()->json([

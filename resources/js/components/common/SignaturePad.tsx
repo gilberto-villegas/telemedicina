@@ -112,7 +112,7 @@ export function SignaturePad({ onSave, initialValue, width = 500, height = 200 }
           onTouchStart={startDrawing}
           onTouchEnd={stopDrawing}
           onTouchMove={draw}
-          className="cursor-crosshair w-full h-auto bg-white"
+          className="cursor-crosshair w-full h-auto bg-white touch-none"
         />
         {!hasSignature && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300">

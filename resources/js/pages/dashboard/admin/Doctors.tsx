@@ -111,7 +111,7 @@ export default function AdminDoctors() {
 
     return (
         <DashboardLayout user={user}>
-            <div className="max-w-7xl mx-auto space-y-8 pb-20 uppercase font-bold">
+            <div className="max-w-7xl mx-auto space-y-4 md:space-y-8 pb-20 px-4 md:px-0 uppercase font-bold">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
@@ -160,27 +160,27 @@ export default function AdminDoctors() {
                         <table className="w-full border-separate border-spacing-y-3">
                             <thead>
                                 <tr className="text-slate-400">
-                                    <th className="px-8 py-5 text-left text-[10px] font-black tracking-widest uppercase bg-white/30 backdrop-blur-md first:rounded-l-2xl last:rounded-r-2xl">DR. / ESPECIALIDAD</th>
-                                    <th className="px-8 py-5 text-left text-[10px] font-black tracking-widest uppercase bg-white/30 backdrop-blur-md">EMAIL / TLF</th>
-                                    <th className="px-8 py-5 text-left text-[10px] font-black tracking-widest uppercase bg-white/30 backdrop-blur-md">ESTADO</th>
-                                    <th className="px-8 py-5 text-right text-[10px] font-black tracking-widest uppercase bg-white/30 backdrop-blur-md first:rounded-l-2xl last:rounded-r-2xl">ACCIONES</th>
+                                    <th className="px-4 md:px-8 py-5 text-left text-[10px] font-black tracking-widest uppercase bg-white/30 backdrop-blur-md first:rounded-l-2xl last:rounded-r-2xl">DR. / ESPECIALIDAD</th>
+                                    <th className="px-4 md:px-8 py-5 text-left text-[10px] font-black tracking-widest uppercase bg-white/30 backdrop-blur-md">EMAIL / TLF</th>
+                                    <th className="px-4 md:px-8 py-5 text-left text-[10px] font-black tracking-widest uppercase bg-white/30 backdrop-blur-md">ESTADO</th>
+                                    <th className="px-4 md:px-8 py-5 text-right text-[10px] font-black tracking-widest uppercase bg-white/30 backdrop-blur-md first:rounded-l-2xl last:rounded-r-2xl">ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredDoctors.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-black bg-white/70 backdrop-blur-xl rounded-[2.5rem]">NO SE ENCONTRARON MÉDICOS</td>
+                                        <td colSpan={4} className="px-4 md:px-8 py-20 text-center text-slate-400 font-black bg-white/70 backdrop-blur-xl rounded-3xl md:rounded-[2.5rem]">NO SE ENCONTRARON MÉDICOS</td>
                                     </tr>
                                 ) : (
                                     filteredDoctors.map(doc => (
                                         <tr key={doc.id} className={`group transition-all hover:scale-[1.01] hover:shadow-xl shadow-slate-900/5 ${doc.is_blocked ? 'opacity-60' : ''}`}>
-                                            <td className="px-8 py-6 bg-white/70 backdrop-blur-xl first:rounded-l-[2.5rem] border-y border-l border-white/40">
+                                            <td className="px-4 md:px-8 py-6 bg-white/70 backdrop-blur-xl first:rounded-l-3xl md:first:rounded-l-[2.5rem] border-y border-l border-white/40">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-14 h-14 bg-blue-50/50 rounded-2xl flex items-center justify-center text-blue-600 font-black shadow-inner">
+                                                    <div className="w-12 h-12 md:w-14 md:h-14 bg-blue-50/50 rounded-2xl flex items-center justify-center text-blue-600 font-black shadow-inner">
                                                         {doc.avatar_url ? (
                                                             <img src={doc.avatar_url} alt="" className="w-full h-full object-cover rounded-2xl" />
                                                         ) : (
-                                                            <Stethoscope className="w-7 h-7" />
+                                                            <Stethoscope className="w-6 h-6 md:w-7 md:h-7" />
                                                         )}
                                                     </div>
                                                     <div>
@@ -203,7 +203,7 @@ export default function AdminDoctors() {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 bg-white/70 backdrop-blur-xl border-y border-white/40">
+                                            <td className="px-4 md:px-8 py-6 bg-white/70 backdrop-blur-xl border-y border-white/40">
                                                 <div className="text-sm text-slate-900 font-bold">{doc.email}</div>
                                                 <div className="text-[11px] text-slate-400 font-medium mt-1 uppercase tracking-tight">{doc.phone}</div>
                                             </td>
@@ -232,7 +232,7 @@ export default function AdminDoctors() {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 bg-white/70 backdrop-blur-xl last:rounded-r-[2.5rem] border-y border-r border-white/40 text-right">
+                                            <td className="px-4 md:px-8 py-6 bg-white/70 backdrop-blur-xl last:rounded-r-3xl md:last:rounded-r-[2.5rem] border-y border-r border-white/40 text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" className="h-12 w-12 p-0 rounded-2xl hover:bg-slate-100/50 hover:scale-110 transition-all">

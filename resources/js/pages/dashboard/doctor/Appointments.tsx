@@ -100,7 +100,7 @@ export default function DoctorAppointmentsPage() {
 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
             <div>
-              <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-2 uppercase">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-2 uppercase leading-tight">
                 Mi <span className="text-blue-600">Agenda</span>
               </h1>
               <p className="text-lg text-slate-500 font-medium capitalize">{formattedDate}</p>
@@ -223,20 +223,20 @@ export default function DoctorAppointmentsPage() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-row md:flex-row items-center gap-3 flex-wrap md:flex-nowrap">
                           {apt.status_name === 'scheduled' && (
                             <>
                               {apt.type === 'videoconsulta' ? (
-                                <button
-                                  onClick={() => startAppointment(apt.id)}
-                                  className="px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10 active:scale-95 flex items-center gap-2"
-                                >
-                                  <Video className="h-4 w-4" />
-                                  Iniciar
-                                </button>
+                                  <button
+                                    onClick={() => startAppointment(apt.id)}
+                                    className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10 active:scale-95 flex items-center justify-center gap-2"
+                                  >
+                                    <Video className="h-4 w-4" />
+                                    Iniciar
+                                  </button>
                               ) : apt.type === 'teleconsulta' ? (
-                                <Link to={`/dashboard/doctor/chat?patient=${apt.patient?.id}&appointment=${apt.id}`}>
-                                  <button className="px-6 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2">
+                                <Link to={`/dashboard/doctor/chat?patient=${apt.patient?.id}&appointment=${apt.id}`} className="w-full sm:w-auto">
+                                  <button className="w-full px-6 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center justify-center gap-2">
                                     <MessageSquare className="h-4 w-4" />
                                     Atender Chat
                                   </button>
@@ -246,9 +246,9 @@ export default function DoctorAppointmentsPage() {
                                   </div>
                               )}
                               <div className="flex gap-2">
-                                <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
-                                  <button className="px-6 py-3 border border-slate-200 text-slate-600 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95">
-                                    Detalles
+                                <Link to={`/dashboard/doctor/appointments/${apt.id}`} className="w-full sm:w-auto">
+                                  <button className="w-full px-6 py-3 border border-slate-200 text-slate-600 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-all active:scale-95">
+                                    Atender y Ver Detalles
                                   </button>
                                 </Link>
                               </div>
@@ -257,12 +257,13 @@ export default function DoctorAppointmentsPage() {
                           {apt.status_name === 'in_progress' && (
                             <div className="flex gap-2">
                               {apt.type === 'videoconsulta' ? (
-                                <Link to={`/dashboard/doctor/appointments/${apt.id}/video`}>
-                                  <button className="px-8 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2">
-                                    <Video className="h-4 w-4" />
-                                    Continuar
-                                  </button>
-                                </Link>
+                                <button
+                                  onClick={() => startAppointment(apt.id)}
+                                  className="px-8 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2"
+                                >
+                                  <Video className="h-4 w-4" />
+                                  Continuar
+                                </button>
                               ) : (
                                   <Link to={`/dashboard/doctor/appointments/${apt.id}`}>
                                       <button className="px-8 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2">

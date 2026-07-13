@@ -2,6 +2,7 @@
 
 import { Notification } from '@/lib/api/notifications';
 import { notificationService } from '@/lib/api/notifications';
+import { authService } from '@/lib/auth';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -37,13 +38,18 @@ export const NotificationItem = ({ notification, onClose }: NotificationItemProp
     // Deep linking basado en el tipo de notificación
     const data = notification.data || {};
     let url = '/dashboard/notifications';
+    const user = authService.getUser();
 
     if (data.url) {
       url = data.url;
     } else if (data.appointment_id) {
       url = `/dashboard/patient/appointments/${data.appointment_id}`;
     } else if (data.payment_id) {
-      url = '/dashboard/patient/payments';
+      if (user?.type === 'admin') {
+        url = '/dashboard/admin/payments';
+      } else {
+        url = '/dashboard/patient/payments';
+      }
     } else if (data.prescription_id) {
       url = `/dashboard/patient/prescriptions/${data.prescription_id}`;
     } else if (data.medical_record_id) {
