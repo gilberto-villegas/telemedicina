@@ -101,7 +101,7 @@ class PatientController extends Controller
         try {
             $file = $request->file('file');
             $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('medical_attachments', $fileName, 'public');
+            $filePath = $file->storeAs('medical_attachments', $fileName, 'private');
 
             // Obtener o crear el registro médico para esta cita
             $medicalRecord = MedicalRecord::firstOrCreate(
@@ -149,4 +149,3 @@ class PatientController extends Controller
         }
     }
 }
-

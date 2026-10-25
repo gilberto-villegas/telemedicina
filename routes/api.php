@@ -120,6 +120,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Historial médico
+    Route::get('/medical-attachments/{attachment}/download', [\App\Http\Controllers\MedicalAttachmentController::class, 'download']);
     Route::prefix('medical-records')->group(function () {
         Route::get('/', [MedicalRecordController::class, 'index']);
         Route::get('/{id}', [MedicalRecordController::class, 'show']);

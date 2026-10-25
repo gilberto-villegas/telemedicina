@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 
 class MedicalQuestionController extends Controller
 {
@@ -42,11 +43,8 @@ class MedicalQuestionController extends Controller
     public function storeResponses(Request $request, string $appointmentId): JsonResponse
     {
         $appointment = Appointment::findOrFail($appointmentId);
-        $user = $request->user();
 
-        if ($appointment->patient_id !== $user->id) {
-            return response()->json(['message' => 'No autorizado'], 403);
-        }
+        Gate::authorize('submitResponses', $appointment);
 
         $responsesRaw = $request->input('responses');
         $responses = is_string($responsesRaw) ? json_decode($responsesRaw, true) : ($responsesRaw ?? []);
@@ -72,7 +70,7 @@ class MedicalQuestionController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $filename = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('public/appointments/' . $appointment->id, $filename);
+                $path = $file->storeAs('appointments/' . $appointment->id, $filename, 'private');
                 $url = asset('storage/appointments/' . $appointment->id . '/' . $filename);
 
                 AppointmentAttachment::create([
@@ -95,6 +93,8 @@ class MedicalQuestionController extends Controller
     public function getResponses(string $appointmentId): JsonResponse
     {
         $appointment = Appointment::with(['medicalResponses.question', 'attachments'])->findOrFail($appointmentId);
+
+        Gate::authorize('viewResponses', $appointment);
         
         return response()->json([
             'responses' => $appointment->medicalResponses,

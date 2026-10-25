@@ -51,7 +51,7 @@ class AppointmentController extends Controller
                 $query->whereDate('start_time', $request->date);
             }
 
-            $appointments = $query->with(['patient', 'doctor'])
+            $appointments = $query->with(['patient', 'doctor.specialty_ref', 'status'])
                 ->orderBy('start_time', 'desc')
                 ->get()
                 ->map(function($apt) {

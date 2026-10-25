@@ -194,7 +194,7 @@ class PaymentController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $path = $file->store('proofs', 'public');
+            $path = $file->store('proofs', 'private');
             $url = asset('storage/' . $path);
 
             return response()->json([

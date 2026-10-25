@@ -3,11 +3,12 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Payment;
 
-class PaymentRegisteredAdminNotification extends Notification
+class PaymentRegisteredAdminNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -51,7 +52,7 @@ class PaymentRegisteredAdminNotification extends Notification
                 'amount_usd' => number_format($this->payment->amount_usd, 2, ',', '.'),
                 'amount_ves' => number_format($this->payment->amount_ves, 2, ',', '.'),
                 'proof_url' => $this->payment->proof_url,
-                'admin_url' => url('/dashboard/admin/payments'),
+                'login_url' => url('/dashboard/admin/payments'),
             ]);
     }
 
@@ -59,8 +60,8 @@ class PaymentRegisteredAdminNotification extends Notification
     {
         return [
             'payment_id' => $this->payment->id,
-            'message' => 'Nuevo pago por validar de ' . $this->payment->user->full_name,
-            'type' => 'payment_awaiting_validation'
+            'message' => 'El paciente ' . $this->payment->appointment->patient->full_name . ' ha registrado un pago por $' . $this->payment->amount_usd . ' USD.',
+            'type' => 'payment_registered'
         ];
     }
 }

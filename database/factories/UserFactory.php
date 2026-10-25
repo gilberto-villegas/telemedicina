@@ -11,7 +11,8 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'uuid' => Str::uuid(),
+            'id' => (string) Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'type' => 'patient',
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
@@ -21,6 +22,7 @@ class UserFactory extends Factory
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'birth_date' => fake()->date(),
+            'is_verified' => true,
         ];
     }
 
@@ -32,7 +34,16 @@ class UserFactory extends Factory
             'specialty' => fake()->randomElement(['Medicina General', 'Cardiología', 'Pediatría', 'Dermatología']),
             'consultation_price_usd' => fake()->randomFloat(2, 20, 50),
             'is_verified' => true,
+            'document_verified' => true,
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => 'admin',
+            'is_verified' => true,
+            'document_verified' => true,
         ]);
     }
 }
-

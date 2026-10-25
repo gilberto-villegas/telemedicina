@@ -7,8 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PaymentVerifiedNotification extends Notification
+class PaymentVerifiedNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     protected $appointment;
 
     /**
@@ -59,8 +61,8 @@ class PaymentVerifiedNotification extends Notification
     {
         return [
             'appointment_id' => $this->appointment->id,
-            'message' => 'Tu pago ha sido verificado. Cita confirmada para el ' . $this->appointment->start_time->format('d/m/Y H:i'),
-            'type' => 'payment_verified'
+            'message' => 'Tu cita ha sido confirmada con éxito.',
+            'type' => 'appointment_confirmed'
         ];
     }
 }

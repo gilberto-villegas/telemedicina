@@ -107,6 +107,11 @@ class Appointment extends Model
         return $this->hasMany(Message::class);
     }
 
+    public function latestMessage()
+    {
+        return $this->hasOne(Message::class)->latestOfMany();
+    }
+
     // Scopes
     public function scopeUpcoming($query)
     {

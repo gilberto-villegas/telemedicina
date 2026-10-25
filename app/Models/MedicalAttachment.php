@@ -45,25 +45,13 @@ class MedicalAttachment extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Accessor para obtener la URL del archivo
+    // Accessor para obtener la URL del endpoint seguro de descarga
     public function getFileUrlAttribute(): ?string
     {
-        if (!$this->storage_path) {
+        if (!$this->id) {
             return null;
         }
 
-        // Si ya es una URL completa, devolverla
-        if (filter_var($this->storage_path, FILTER_VALIDATE_URL)) {
-            return $this->storage_path;
-        }
-
-        // Construir URL desde el storage público
-        $baseUrl = config('app.url', 'http://localhost:8000');
-        // Asegurar que la URL tenga el puerto correcto si es localhost
-        if (strpos($baseUrl, 'localhost') !== false && strpos($baseUrl, ':') === false) {
-            $baseUrl = 'http://localhost:8000';
-        }
-        return $baseUrl . '/storage/' . ltrim($this->storage_path, '/');
+        return url('/api/medical-attachments/' . $this->id . '/download');
     }
 }
-

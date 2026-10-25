@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Appointment;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class ChatController extends Controller
 {
@@ -13,23 +16,23 @@ class ChatController extends Controller
     {
         $user = $request->user();
 
-        // Obtener appointments del usuario
-        $appointments = \App\Models\Appointment::where(function($query) use ($user) {
+        // Obtener appointments del usuario optimizado sin N+1
+        $appointments = Appointment::where(function($query) use ($user) {
                 if ($user->isPatient()) {
                     $query->where('patient_id', $user->id);
                 } else {
                     $query->where('doctor_id', $user->id);
                 }
             })
-            ->with(['doctor', 'patient', 'status'])
+            ->with(['doctor.specialty_ref', 'patient', 'status', 'latestMessage'])
+            ->withCount(['messages as unread_messages_count' => function ($q) use ($user) {
+                $q->where('receiver_id', $user->id)->whereNull('read_at');
+            }])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $chats = $appointments->map(function($appointment) use ($user) {
-            // Obtener último mensaje
-            $lastMessage = \App\Models\Message::where('appointment_id', $appointment->id)
-                ->orderBy('created_at', 'desc')
-                ->first();
+        $chats = $appointments->map(function($appointment) {
+            $lastMessage = $appointment->latestMessage;
 
             // Solo mostrar si tiene mensajes O si está activo (programado o en curso)
             $isVisible = $lastMessage !== null || 
@@ -38,12 +41,6 @@ class ChatController extends Controller
             if (!$isVisible) {
                 return null;
             }
-
-            // Contar no leídos
-            $unreadCount = \App\Models\Message::where('appointment_id', $appointment->id)
-                ->where('receiver_id', $user->id)
-                ->whereNull('read_at')
-                ->count();
 
             return [
                 'id' => $appointment->id,
@@ -62,9 +59,9 @@ class ChatController extends Controller
                     'message' => $lastMessage->message,
                     'created_at' => $lastMessage->created_at->toISOString(),
                 ] : null,
-                'unread_count' => $unreadCount,
+                'unread_count' => (int) $appointment->unread_messages_count,
                 'status' => $appointment->status?->name,
-                'start_time' => $appointment->start_time->toISOString(),
+                'start_time' => $appointment->start_time ? $appointment->start_time->toISOString() : null,
             ];
         })->filter()->values();
 
@@ -80,17 +77,17 @@ class ChatController extends Controller
         // Crear o encontrar chat basado en appointment
         $appointment = null;
         if ($request->has('appointment_id')) {
-            $appointment = \App\Models\Appointment::find($request->appointment_id);
+            $appointment = Appointment::find($request->appointment_id);
         }
 
         if (!$appointment) {
             if ($user->isPatient() && $doctorId) {
-                $appointment = \App\Models\Appointment::where('patient_id', $user->id)
+                $appointment = Appointment::where('patient_id', $user->id)
                     ->where('doctor_id', $doctorId)
                     ->orderBy('created_at', 'desc')
                     ->first();
             } elseif ($user->isDoctor() && $patientId) {
-                $appointment = \App\Models\Appointment::where('doctor_id', $user->id)
+                $appointment = Appointment::where('doctor_id', $user->id)
                     ->where('patient_id', $patientId)
                     ->orderBy('created_at', 'desc')
                     ->first();
@@ -126,14 +123,17 @@ class ChatController extends Controller
     public function messages(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
+        $appointment = Appointment::findOrFail($id);
+
+        Gate::authorize('viewMessages', $appointment);
         
-        $messages = \App\Models\Message::where('appointment_id', $id)
+        $messages = Message::where('appointment_id', $id)
             ->with('sender')
             ->orderBy('created_at', 'asc')
             ->get();
 
         // Marcar como leídos los mensajes para este usuario en este chat
-        \App\Models\Message::where('appointment_id', $id)
+        Message::where('appointment_id', $id)
             ->where('receiver_id', $user->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
@@ -146,14 +146,16 @@ class ChatController extends Controller
         $user = $request->user();
         $text = $request->input('message');
 
-        $appointment = \App\Models\Appointment::findOrFail($id);
+        $appointment = Appointment::findOrFail($id);
+
+        Gate::authorize('sendMessage', $appointment);
         
         // El receptor es el otro participante de la cita
         $receiverId = ($user->id === $appointment->patient_id) 
             ? $appointment->doctor_id 
             : $appointment->patient_id;
 
-        $message = \App\Models\Message::create([
+        $message = Message::create([
             'appointment_id' => $id,
             'sender_id' => $user->id,
             'receiver_id' => $receiverId,
@@ -163,4 +165,3 @@ class ChatController extends Controller
         return response()->json($message->load('sender'));
     }
 }
-
