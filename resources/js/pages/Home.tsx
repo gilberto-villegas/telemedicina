@@ -525,9 +525,9 @@ export default function Home() {
             </div>
             <p className="text-sm">© 2024 VilSalud. Todos los derechos reservados.</p>
             <div className="flex gap-6 text-sm">
-              <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-              <a href="#" className="hover:text-white transition-colors">Términos</a>
-              <a href="#" className="hover:text-white transition-colors">Contacto</a>
+              <Link to="/privacy" className="hover:text-white transition-colors">Privacidad</Link>
+              <Link to="/terms" className="hover:text-white transition-colors">Términos</Link>
+              <Link to="/contact" className="hover:text-white transition-colors">Contacto</Link>
             </div>
           </div>
         </div>

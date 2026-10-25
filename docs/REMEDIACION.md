@@ -46,7 +46,17 @@ php artisan test
 ```
 
 ### Estado Actual de la Suite:
-- **Total de pruebas**: 30 pasadas
-- **Aserciones ejecutadas**: 87 comprobaciones
+- **Total de pruebas**: 34 pasadas
+- **Aserciones ejecutadas**: 95 comprobaciones
 - **Fallos**: 0
-- **Tiempo de ejecución**: ~2.9 segundos
+- **Tiempo de ejecución**: ~5.8 segundos
+
+---
+
+## 4. REMEDIACIÓN FASE A — NAVEGACIÓN Y PÁGINAS LEGALES DEL FRONTEND
+
+| Bug | Estado | Archivos Modificados / Creados | Tests de Verificación |
+| :--- | :--- | :--- | :--- |
+| **Enlaces rotos en Footer Público**<br>Los enlaces `Privacidad`, `Términos` y `Contacto` apuntaban a anclas muertas (`href="#"`), carecían de rutas en el router de React y de componentes de destino. | **Cerrado / Resuelto** | - [`resources/js/pages/public/Privacy.tsx`](file:///c:/laragon/www/telemedicina/resources/js/pages/public/Privacy.tsx)<br>- [`resources/js/pages/public/Terms.tsx`](file:///c:/laragon/www/telemedicina/resources/js/pages/public/Terms.tsx)<br>- [`resources/js/pages/public/Contact.tsx`](file:///c:/laragon/www/telemedicina/resources/js/pages/public/Contact.tsx)<br>- [`resources/js/router.tsx`](file:///c:/laragon/www/telemedicina/resources/js/router.tsx)<br>- [`resources/js/pages/Home.tsx`](file:///c:/laragon/www/telemedicina/resources/js/pages/Home.tsx)<br>- [`resources/js/components/layout/PublicLayout.tsx`](file:///c:/laragon/www/telemedicina/resources/js/components/layout/PublicLayout.tsx) | [`tests/Feature/PublicPagesTest.php`](file:///c:/laragon/www/telemedicina/tests/Feature/PublicPagesTest.php)<br>*(4 tests backend: 200 en `/`, `/privacy`, `/terms`, `/contact`)*<br>`npm run build` *(compilación SPA y resolución de rutas estáticas en 1.25s)* |
+
+

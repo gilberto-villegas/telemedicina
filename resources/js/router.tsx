@@ -2,6 +2,9 @@ import { Routes, Route } from 'react-router-dom';
 
 // Pages
 import Home from './pages/Home';
+import Privacy from './pages/public/Privacy';
+import Terms from './pages/public/Terms';
+import Contact from './pages/public/Contact';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -47,6 +50,9 @@ export default function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/contact" element={<Contact />} />
 
             <Route path="/auth">
                 <Route path="login" element={<Login />} />
